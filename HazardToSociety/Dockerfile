@@ -8,7 +8,7 @@ WORKDIR /src
 COPY . .
 
 FROM build AS publish
-RUN dotnet publish "HazardToSociety/Server/HazardToSociety.Server.csproj" -c Release -o /app/publish
+RUN dotnet publish "Server/HazardToSociety.Server.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app

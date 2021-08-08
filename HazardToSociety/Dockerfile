@@ -13,4 +13,6 @@ RUN dotnet publish "Server/HazardToSociety.Server.csproj" -c Release -o /app/pub
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+ENV NoaaApiKey=${NoaaApiKey}
+ENV UpdateTime=${UpdateTime}
 ENTRYPOINT ["dotnet", "HazardToSociety.Server.dll"]

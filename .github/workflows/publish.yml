@@ -31,7 +31,7 @@ jobs:
         uses: matootie/github-docker@v3.1.0
         with:
           # GitHub Repository Token to log in using.
-          accessToken: ${{ secrets.ACCESS_TOKEN }}
+          accessToken: ${{ GITHUB_TOKEN }}
           # The desired name for the image. Defaults to current repository name.
           imageName: HazardToSociety
           # The desired tag for the image. Defaults to latest. Optionally accepts multiple tags separated by newline.

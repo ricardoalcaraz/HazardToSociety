@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HazardToSociety.Server", "HazardToSociety\Server\HazardToSociety.Server.csproj", "{D4F4EAD4-357E-4E87-840D-609C8E7B1561}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HazardToSociety.Client", "HazardToSociety\Client\HazardToSociety.Client.csproj", "{AC488051-3467-45EF-BA20-DCFB6DCE51A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HazardToSociety.Shared", "HazardToSociety\Shared\HazardToSociety.Shared.csproj", "{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D4F4EAD4-357E-4E87-840D-609C8E7B1561}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4F4EAD4-357E-4E87-840D-609C8E7B1561}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4F4EAD4-357E-4E87-840D-609C8E7B1561}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4F4EAD4-357E-4E87-840D-609C8E7B1561}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC488051-3467-45EF-BA20-DCFB6DCE51A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC488051-3467-45EF-BA20-DCFB6DCE51A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC488051-3467-45EF-BA20-DCFB6DCE51A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC488051-3467-45EF-BA20-DCFB6DCE51A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,46 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: publish-docker
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+  # You may pin to the exact commit or the version.
+  # uses: matootie/github-docker@c1290d4f67c6fc0cdf84b2924d6dccf658129b3e
+        uses: matootie/github-docker@v3.1.0
+        with:
+          # GitHub Repository Token to log in using.
+          accessToken: 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
+          # The desired name for the image. Defaults to current repository name.
+          imageName: HazardToSociety
+          # The desired tag for the image. Defaults to latest. Optionally accepts multiple tags separated by newline.
+          tag: # optional, default is latest
+          # Any additional build arguments to use when building the image, separated by newline.
+          #buildArgs: # optional
+          # Where should GitHub Docker find the Dockerfile, relative to the root of the repository.
+          #context: # optional, default is .
+          # What Dockerfile should GitHub Docker be using when building. Defaults to traditional Dockerfile name.
+          #contextName: # optional, default is Dockerfile
+          # Whether or not to push to GitHub Container Registry instead of GitHub Package Registry.
+          #containerRegistry: # optional, default is false
+          # The repository to push the image to. Defaults to the current repository. Must be specified in format user/repo.
+          #repository: # optional

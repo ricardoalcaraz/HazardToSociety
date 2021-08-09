@@ -2,6 +2,8 @@ version: "3.3"
 services:
   hazardtosociety:
     image: ghcr.io/ricardoalcaraz/hazardtosociety:latest
+    build:
+      context: ./
     container_name: HazardToSociety
     restart: unless-stopped
     labels:
@@ -13,7 +15,7 @@ services:
     networks:
       - web
     environment:
-      - NoaaApiToken
+      - NoaaApiKey
 
 networks:
   web:

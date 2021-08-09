@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 WORKDIR /app
 ARG Environment
 ENV ASPNETCORE_ENVIRONMENT=${Environment}
+
 EXPOSE 80
 EXPOSE 443
 

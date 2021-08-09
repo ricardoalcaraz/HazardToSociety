@@ -20,7 +20,7 @@ jobs:
         # private SSH key
         key: ${{ secrets.SSH_KEY }}
         # remote machine IP address
-        ip: ricardoalcaraz.com
+        ip: ricardoalcaraz.com:420
         # optional: remote machine public host key, to avoid MITM attacks
         #host_key: # default is 
         # optional: set SSH connection timeout, in seconds (default: 60)

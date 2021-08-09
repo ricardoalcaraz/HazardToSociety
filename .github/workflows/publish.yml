@@ -37,7 +37,7 @@ jobs:
           # The desired tag for the image. Defaults to latest. Optionally accepts multiple tags separated by newline.
           #tag: # optional, default is latest
           # Any additional build arguments to use when building the image, separated by newline.
-          buildArgs: NoaaApiKey=${{ secrets.API_TOKEN }}
+          #buildArgs: 
           # Where should GitHub Docker find the Dockerfile, relative to the root of the repository.
           context: HazardToSociety
           # What Dockerfile should GitHub Docker be using when building. Defaults to traditional Dockerfile name.

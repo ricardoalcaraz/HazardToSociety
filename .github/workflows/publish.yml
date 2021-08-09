@@ -57,6 +57,5 @@ jobs:
             cd ~/HazardToSociety
             git pull
             cd HazardToSociety/
-            ls -al
             docker-compose pull
-            docker-compose up -d -e NoaaApiToken=${{ secrets.API_TOKEN }}
+            docker-compose -e NoaaApiToken=${{ secrets.API_TOKEN }} up -d

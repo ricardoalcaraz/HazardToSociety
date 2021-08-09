@@ -1,0 +1,41 @@
+name: .NET
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: docker-ssh-redeploy
+      # You may pin to the exact commit or the version.
+      # uses: idoneam/redeploy@5996000ea0ee28078c6922960625c9d7a917585f
+      uses: idoneam/redeploy@v1
+      with:
+        # private SSH key
+        key: ${{ secrets.SSH_KEY }}
+        # remote machine IP address
+        ip: ricardoalcaraz.com
+        # optional: remote machine public host key, to avoid MITM attacks
+        #host_key: # default is 
+        # optional: set SSH connection timeout, in seconds (default: 60)
+        #timeout: # default is 60
+        # remote machine username
+        user: ralcaraz
+        # optional: working directory (default: home directory)
+        #cwd: # default is .
+        # unique project identifier, which is used as the docker container name
+        ident: HazardToSociery
+        # image to pull, including tag (format: registry/user/app:tag)
+        image: ghcr.io/ricardoalcaraz/hazardtosociety:latest
+        # optional: stop redeployment early if the docker stop/rm steps fail, set to "yes" to stop (default: "yes")
+        #stop_early: # default is yes
+        # arguments to pass to docker run (such as env-file, v, ...)
+        args: env=ASPNETCORE_ENVIRONMENT
+        # determines if SSH output should be printed in case the connection fails, set to "yes" to print (default: "no")
+        print_SSH_error: "yes"

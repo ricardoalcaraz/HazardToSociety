@@ -26,8 +26,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: publish-docker
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-  # You may pin to the exact commit or the version.
-  # uses: matootie/github-docker@c1290d4f67c6fc0cdf84b2924d6dccf658129b3e
+      # You may pin to the exact commit or the version.
+      # uses: matootie/github-docker@c1290d4f67c6fc0cdf84b2924d6dccf658129b3e
         uses: matootie/github-docker@v3.1.0
         with:
           # GitHub Repository Token to log in using.
@@ -46,3 +46,17 @@ jobs:
           containerRegistry: true
           # The repository to push the image to. Defaults to the current repository. Must be specified in format user/repo.
           #repository: # optional
+      - name: server-deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: hazardtosociety.com
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ~/HazardToSociety
+            git pull
+            cd HazardToSociety/
+            ls -al
+            docker-compose pull
+            docker-compose up -d

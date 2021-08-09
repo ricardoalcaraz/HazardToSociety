@@ -39,14 +39,14 @@ jobs:
         #stop_early: # default is yes
         # arguments to pass to docker run (such as env-file, v, ...)
         args: |
-          --env ASPNETCORE_ENVIRONMENT=Development 
-          --env NoaaApiKey=${{ secrets.API_TOKEN }}
-          --label traefik.enable=true
-          --label traefik.http.routers.hazardtosociety.rule=(Host(`hazardtosociety.com`) || Host(`www.hazardtosociety.com`))
-          --label traefik.http.routers.hazardtosociety.entrypoints=websecure
-          --label traefik.http.routers.hazardtosociety.tls=true
-          --label traefik.http.routers.hazardtosociety.tls.certresolver=le
-          --net web
+          --env ASPNETCORE_ENVIRONMENT=Development \
+          --env NoaaApiKey=${{ secrets.API_TOKEN }} \
+          --label traefik.enable=true \
+          --label traefik.http.routers.hazardtosociety.rule=(Host(`hazardtosociety.com`) || Host(`www.hazardtosociety.com`)) \
+          --label traefik.http.routers.hazardtosociety.entrypoints=websecure \
+          --label traefik.http.routers.hazardtosociety.tls=true \
+          --label traefik.http.routers.hazardtosociety.tls.certresolver=le \
+          --net web \
           --restart unless-stopped
         # determines if SSH output should be printed in case the connection fails, set to "yes" to print (default: "no")
         print_SSH_error: "yes"

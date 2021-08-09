@@ -33,7 +33,7 @@ namespace HazardToSociety.Server
         {
             var logger = app.ApplicationServices.GetRequiredService<ILogger<Startup>>();
             logger.LogInformation("Starting in {Environment} environment", env.EnvironmentName);
-            logger.LogDebug("ApiKey:{ApiKey}, UpdateTime:{Time}", 
+            logger.LogInformation("ApiKey:{ApiKey}, UpdateTime:{Time}", 
                 Configuration["NoaaApiKey"], 
                 Configuration["UpdateTime"]);
             

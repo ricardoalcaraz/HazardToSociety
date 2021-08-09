@@ -12,6 +12,8 @@ services:
       - traefik.http.routers.hazardtosociety.tls.certresolver=le
     networks:
       - web
+    environment:
+      - NoaaApiToken=${NoaaApiToken}
 
 networks:
   web:

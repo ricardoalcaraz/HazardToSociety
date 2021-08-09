@@ -3,6 +3,7 @@ WORKDIR /app
 ARG Environment
 ENV ASPNETCORE_ENVIRONMENT=${Environment}
 EXPOSE 80
+EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
 WORKDIR /src

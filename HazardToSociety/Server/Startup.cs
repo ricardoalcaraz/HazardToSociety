@@ -9,12 +9,15 @@ namespace HazardToSociety.Server
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
-            Configuration = configuration;
+            _configuration = configuration;
+            _env = env;
         }
 
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -22,10 +25,13 @@ namespace HazardToSociety.Server
         {
             services.AddControllersWithViews();
             services.AddRazorPages();
-            services.AddHostedService<WeatherService>();
             services.AddTransient<IWeatherClient, WeatherClient>();
             services.AddLogging();
             services.AddHttpClient();
+            if (_env.IsDevelopment())
+            {
+                services.AddHostedService<WeatherService>();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,8 +40,8 @@ namespace HazardToSociety.Server
             var logger = app.ApplicationServices.GetRequiredService<ILogger<Startup>>();
             logger.LogInformation("Starting in {Environment} environment", env.EnvironmentName);
             logger.LogInformation("ApiKey:{ApiKey}, UpdateTime:{Time}", 
-                Configuration["NoaaApiKey"], 
-                Configuration["UpdateTime"]);
+                _configuration["NoaaApiKey"], 
+                _configuration["UpdateTime"]);
             
             if (env.IsDevelopment())
             {
@@ -48,7 +54,8 @@ namespace HazardToSociety.Server
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            
+
+            app.UseHttpsRedirection();
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 

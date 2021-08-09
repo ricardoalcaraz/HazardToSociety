@@ -39,7 +39,6 @@ jobs:
           # Any additional build arguments to use when building the image, separated by newline.
           buildArgs: |
             NoaaApiKey=${{ secrets.API_TOKEN }}
-            UpdateTime=20000
           # Where should GitHub Docker find the Dockerfile, relative to the root of the repository.
           context: HazardToSociety
           # What Dockerfile should GitHub Docker be using when building. Defaults to traditional Dockerfile name.

@@ -23,29 +23,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v2
-      - name: publish-docker
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      # You may pin to the exact commit or the version.
-      # uses: matootie/github-docker@c1290d4f67c6fc0cdf84b2924d6dccf658129b3e
-        uses: matootie/github-docker@v3.1.0
-        with:
-          # GitHub Repository Token to log in using.
-          accessToken: ${{ secrets.GITHUB_TOKEN }}
-          # The desired name for the image. Defaults to current repository name.
-          imageName: HazardToSociety
-          # The desired tag for the image. Defaults to latest. Optionally accepts multiple tags separated by newline.
-          #tag: # optional, default is latest
-          # Any additional build arguments to use when building the image, separated by newline.
-          #buildArgs: 
-          # Where should GitHub Docker find the Dockerfile, relative to the root of the repository.
-          context: HazardToSociety
-          # What Dockerfile should GitHub Docker be using when building. Defaults to traditional Dockerfile name.
-          #contextName: # optional, default is Dockerfile
-          # Whether or not to push to GitHub Container Registry instead of GitHub Package Registry.
-          containerRegistry: true
-          # The repository to push the image to. Defaults to the current repository. Must be specified in format user/repo.
-          #repository: # optional
       - name: server-deploy
         uses: appleboy/ssh-action@master
         with:
@@ -58,4 +35,5 @@ jobs:
             git pull
             cd HazardToSociety/
             docker-compose pull
-            docker-compose -e NoaaApiToken=${{ secrets.API_TOKEN }} up -d
+            export NoaaApiToken=${{ secrets.API_TOKEN }}
+            docker-compose up -d

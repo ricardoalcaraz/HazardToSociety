@@ -32,12 +32,12 @@ jobs:
         # optional: working directory (default: home directory)
         #cwd: # default is .
         # unique project identifier, which is used as the docker container name
-        ident: HazardToSociery
+        ident: HazardToSociety
         # image to pull, including tag (format: registry/user/app:tag)
         image: ghcr.io/ricardoalcaraz/hazardtosociety:latest
         # optional: stop redeployment early if the docker stop/rm steps fail, set to "yes" to stop (default: "yes")
         #stop_early: # default is yes
         # arguments to pass to docker run (such as env-file, v, ...)
-        args: --env ASPNETCORE_ENVIRONMENT=Development
+        args: --env ASPNETCORE_ENVIRONMENT=Development -p 5000:80
         # determines if SSH output should be printed in case the connection fails, set to "yes" to print (default: "no")
         print_SSH_error: "yes"

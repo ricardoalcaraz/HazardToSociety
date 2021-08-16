@@ -1,6 +1,7 @@
 ﻿<!--
 If you want to enable Blazor routing, you should remove all of this contents,
 and uncomment the below line. (See also: https://docs.microsoft.com/en-us/aspnet/core/blazor/routing )
+-->
 
 <Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
     <Found Context="routeData">
@@ -12,12 +13,12 @@ and uncomment the below line. (See also: https://docs.microsoft.com/en-us/aspnet
         </LayoutView>
     </NotFound>
 </Router>
--->
 
 <div id="title" style="text-align:center">
     <h1>
         Hello World! We meet again
     </h1>
+    <Counter />
 </div>
 
 @code {

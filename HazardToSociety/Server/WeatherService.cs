@@ -32,6 +32,11 @@ namespace HazardToSociety.Server
         private async Task UpdateData(CancellationToken cancellationToken)
         {
             var locations = await _weatherClient.GetLocations(cancellationToken);
+            foreach (var location in locations.Results)
+            {
+                var data = await _weatherClient.GetData(location, cancellationToken);
+                _logger.LogInformation("Data received: {Data}", data);
+            }
             _logger.LogDebug("Received: {Locations}", locations);
         }
     }

@@ -1,0 +1,16 @@
+{
+  "name": "globe",
+  "version": "1.0.0",
+  "description": "record breaking weather conditions projected on a globe",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ricardo Alcaraz Ramirez",
+  "license": "ISC",
+  "dependencies": {
+    "three": "^0.131.3",
+    "three-globe": "^2.18.6",
+    "three-glow-mesh": "^0.1.2"
+  }
+}

@@ -1,3 +1,5 @@
+@using Microsoft.Extensions.Logging;
+@inject ILogger<Counter> logger;
 <h3>Counter</h3>
 <button @onclick="IncrementCount">Count!</button>
 <p>Count: @_counter</p>
@@ -6,6 +8,7 @@
     
     private void IncrementCount()
     {
+        logger.LogWarning("Someone has clicked me!");
         _counter++;
     }
 

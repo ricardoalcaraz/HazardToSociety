@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HazardToSociety.Server;
-using HazardToSociety.Server.Utilities;
 using HazardToSociety.Shared.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -23,7 +21,10 @@ namespace HazardToSociety.Shared.Utilities
         public IAsyncEnumerable<NoaaDataSet> GetDataSet(NoaaDatasetOptions options, 
             CancellationToken cancellationToken = default);
 
-        public IAsyncEnumerable<NoaaDataType> GetDataTypes(NoaaDataTypeOptions options,
+        public IAsyncEnumerable<NoaaDataType> GetAllDataTypes(NoaaDataTypeOptions options,
+            CancellationToken cancellationToken = default);
+
+        public Task<NoaaPagedData<NoaaDataType>> GetDataTypes(NoaaDataTypeOptions options,
             CancellationToken cancellationToken = default);
     }
 
@@ -41,7 +42,8 @@ namespace HazardToSociety.Shared.Utilities
             _logger = logger;
             _queryBuilderService = queryBuilderService;
             _httpClient = httpClientFactory.CreateClient();
-            _httpClient.DefaultRequestHeaders.Add("token", configuration["NoaaApiKey"]);
+            var token = configuration["NoaaApiKey"];
+            _httpClient.DefaultRequestHeaders.Add("token", token);
             _httpClient.BaseAddress = new Uri("https://www.ncdc.noaa.gov/cdo-web/api/v2/");
         }
         
@@ -59,18 +61,26 @@ namespace HazardToSociety.Shared.Utilities
             CancellationToken cancellationToken)
             => GetAllPagedData<NoaaDataSet, NoaaDatasetOptions>("datasets", options, cancellationToken);
 
-        public IAsyncEnumerable<NoaaDataType> GetDataTypes(NoaaDataTypeOptions options, CancellationToken cancellationToken)
+        public IAsyncEnumerable<NoaaDataType> GetAllDataTypes(NoaaDataTypeOptions options, CancellationToken cancellationToken)
         {
             return GetAllPagedData<NoaaDataType, NoaaDataTypeOptions>("datatypes", options, cancellationToken);
         }
-        
+
+        public async Task<NoaaPagedData<NoaaDataType>> GetDataTypes(NoaaDataTypeOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            var url = "datatypes" + _queryBuilderService.GetQuery(options);
+            return await GetNextResultSet<NoaaDataType>(url, cancellationToken);
+        }
+
         private async Task<NoaaPagedData<T>> GetNextResultSet<T>(string url, CancellationToken cancellationToken)
         {
             var request = await _httpClient.GetAsync(url, cancellationToken);
-            request = request.EnsureSuccessStatusCode();
-            var body = await request.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogDebug(body);
-            return JsonSerializer.Deserialize<NoaaPagedData<T>>(body);//await request.Content.ReadFromJsonAsync<NoaaPagedData<T>>(cancellationToken: cancellationToken);
+            request.EnsureSuccessStatusCode();
+            // var body = await request.Content.ReadAsStringAsync(cancellationToken);
+            // _logger.LogDebug(body);
+            // return JsonSerializer.Deserialize<NoaaPagedData<T>>(body);
+            return await request.Content.ReadFromJsonAsync<NoaaPagedData<T>>(cancellationToken: cancellationToken);
         }
 
         private async IAsyncEnumerable<T> GetAllPagedData<T, TOptions>(string baseUrl, TOptions options, [EnumeratorCancellation] CancellationToken cancellationToken = default) where TOptions : NoaaOptions
@@ -88,7 +98,7 @@ namespace HazardToSociety.Shared.Utilities
                 {
                     yield return item;
                 }
-                isNextPageAvailable = pagedData.Metadata.ResultSet.Count <= options.Offset;
+                isNextPageAvailable = pagedData.Metadata.ResultSet.Count > options.Offset;
             }
         }
 

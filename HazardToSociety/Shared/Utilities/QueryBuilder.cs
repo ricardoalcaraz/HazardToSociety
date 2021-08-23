@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace HazardToSociety.Server.Utilities
+namespace HazardToSociety.Shared.Utilities
 {
     public interface IQueryBuilderService
     {

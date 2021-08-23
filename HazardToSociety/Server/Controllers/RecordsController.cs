@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using HazardToSociety.Shared.Models;
 using HazardToSociety.Shared.Utilities;
 using Microsoft.AspNetCore.Mvc;
@@ -30,9 +31,9 @@ namespace HazardToSociety.Server.Controllers
         }
 
         [HttpGet("data-types")]
-        public IAsyncEnumerable<NoaaDataType> GetDataTypes()
+        public async Task<NoaaPagedData<NoaaDataType>> GetDataTypes()
         {
-            return _weatherClient.GetDataTypes(new NoaaDataTypeOptions());
+            return await _weatherClient.GetDataTypes(new NoaaDataTypeOptions());
         }
     }
 }

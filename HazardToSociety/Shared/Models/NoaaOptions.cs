@@ -40,7 +40,7 @@ namespace HazardToSociety.Shared.Models
         public string DataSetId { get; init; }
         public string LocationId { get; init; }
         public string StationId { get; init; }
-        public int DataCategoryId { get; init; }
+        public string DataCategoryId { get; init; }
     }
 
     public record NoaaDataCategoryOptions : NoaaOptions

@@ -5,17 +5,17 @@ namespace HazardToSociety.Shared.Models
     public record NoaaDataSet
     {
         public string Uid { get; init; }
-        public DateTime? MinDate { get; init; }
-        public DateTime? MaxDate { get; init; }
+        public DateTime MinDate { get; init; }
+        public DateTime MaxDate { get; init; }
         public string Name { get; init; }
-        public float? DataCoverage { get; init; }
+        public float DataCoverage { get; init; }
         public string Id { get; init; }
     }
 
     public record NoaaLocation
     {
         public string Id { get; init; }
-        public float? DataCoverage { get; init; }
+        public float DataCoverage { get; init; }
         public string Name { get; init; }
     }
 
@@ -33,7 +33,7 @@ namespace HazardToSociety.Shared.Models
         public DateTime MinDate { get; init; }
         public DateTime MaxDate { get; init; }
         public string Name { get; init; }
-        public int DataCoverage { get; init; }
+        public float DataCoverage { get; init; }
         public string Id { get; init; }
     }
 

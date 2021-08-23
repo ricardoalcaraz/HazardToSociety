@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Net.Http;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
-using System.Text;
+using HazardToSociety.Shared.Utilities;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace HazardToSociety.Client
 {
@@ -17,9 +16,20 @@ namespace HazardToSociety.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
-            builder.Services.AddScoped(
-                sp => new HttpClient {BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)});
+            builder.Services.AddHttpClient("local", (provider, client) =>
+            {
+                client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+            });
+            
+            builder.Services.AddScoped(sp =>
+            {
+                var factory = sp.GetService<IHttpClientFactory>();
+                return factory?.CreateClient("local");
+            });
 
+            builder.Configuration.AddInMemoryCollection(new []{new KeyValuePair<string, string>("NoaaApiKey", "test")});
+            builder.Services.AddScoped<IWeatherClient, WeatherClient>();
+            builder.Services.AddSingleton<IQueryBuilderService, QueryBuilderService>();
             await builder.Build().RunAsync();
         }
     }

@@ -1,4 +1,5 @@
 @using HazardToSociety.Shared.Models
+@using HazardToSociety.Server
 @inject HttpClient _httpClient;
 
 <h3>DataTypes</h3>
@@ -6,7 +7,7 @@
 @if (_dataTypes != null)
 {
     <ul>
-        @foreach (var dataType in _dataTypes)
+        @foreach (var dataType in _dataTypes.Results)
         {
             <li>@dataType</li>
         }
@@ -14,8 +15,8 @@
 }
 
 @code {
-    private IEnumerable<NoaaDataType> _dataTypes;
+    private NoaaPagedData<NoaaDataType> _dataTypes;
     
     protected override async Task OnInitializedAsync() 
-        => _dataTypes = await _httpClient.GetFromJsonAsync<IEnumerable<NoaaDataType>>("api/records/data-types");
+        => _dataTypes = await _httpClient.GetFromJsonAsync<NoaaPagedData<NoaaDataType>>("api/records/data-types");
 }

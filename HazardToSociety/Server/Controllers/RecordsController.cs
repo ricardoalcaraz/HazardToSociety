@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net.Http;
+using HazardToSociety.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
@@ -10,12 +11,12 @@ namespace HazardToSociety.Server.Controllers
     public class RecordsController : ControllerBase
     {
         [HttpGet]
-        public IEnumerable<string> Records()
+        public IEnumerable<NoaaLocation> Records()
         {
-            return new List<string>()
+            return new List<NoaaLocation>()
             {
-                "record1",
-                "record2"
+                new() { Name = "Los Angeles" },
+                new() { Name = "New York" }
             };
         }
     }

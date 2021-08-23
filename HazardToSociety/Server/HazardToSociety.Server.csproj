@@ -7,12 +7,19 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MediatR" Version="9.0.0" />
+        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.6" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Client\HazardToSociety.Client.csproj" />
         <ProjectReference Include="..\Shared\HazardToSociety.Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Mediatr\Command" />
+      <Folder Include="Mediatr\Query" />
     </ItemGroup>
 
 </Project>

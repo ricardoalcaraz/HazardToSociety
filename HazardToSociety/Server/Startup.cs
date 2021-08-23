@@ -1,5 +1,11 @@
+using HazardToSociety.Server.Services;
+using HazardToSociety.Server.Utilities;
+using HazardToSociety.Shared;
+using HazardToSociety.Shared.Utilities;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,6 +34,8 @@ namespace HazardToSociety.Server
             services.AddTransient<IWeatherClient, WeatherClient>();
             services.AddLogging();
             services.AddHttpClient();
+            services.AddSingleton<IQueryBuilderService, QueryBuilderService>();
+            services.AddMediatR(typeof(Startup));
             if (_env.IsDevelopment())
             {
                 services.AddHostedService<WeatherService>();

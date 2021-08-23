@@ -1,0 +1,27 @@
+@using System.Net.Http
+@using HazardToSociety.Server
+@using HazardToSociety.Shared.Models
+@inject HttpClient _http
+
+@if (_locations == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <h3>RecordList</h3>
+    <ul>
+        @foreach (var location in _locations)
+        {
+            <li><RecordListItem Name="@location.Name"/></li>
+        }
+    </ul>
+}
+
+
+@code {
+    private IEnumerable<NoaaLocation> _locations;
+    
+    protected override async Task OnInitializedAsync() 
+        => _locations = await _http.GetFromJsonAsync<IEnumerable<NoaaLocation>>("api/records");
+}

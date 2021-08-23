@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using HazardToSociety.Shared.Models;
+using HazardToSociety.Shared.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
@@ -10,6 +12,13 @@ namespace HazardToSociety.Server.Controllers
     [Route("api/[controller]")]
     public class RecordsController : ControllerBase
     {
+        private readonly IWeatherClient _weatherClient;
+
+        public RecordsController(IWeatherClient weatherClient)
+        {
+            _weatherClient = weatherClient;
+        }
+
         [HttpGet]
         public IEnumerable<NoaaLocation> Records()
         {
@@ -18,6 +27,12 @@ namespace HazardToSociety.Server.Controllers
                 new() { Name = "Los Angeles" },
                 new() { Name = "New York" }
             };
+        }
+
+        [HttpGet("data-types")]
+        public IAsyncEnumerable<NoaaDataType> GetDataTypes()
+        {
+            return _weatherClient.GetDataTypes(new NoaaDataTypeOptions());
         }
     }
 }

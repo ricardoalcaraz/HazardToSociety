@@ -2,8 +2,6 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using HazardToSociety.Server.Utilities;
-using HazardToSociety.Shared;
 using HazardToSociety.Shared.Models;
 using HazardToSociety.Shared.Utilities;
 using Microsoft.Extensions.Configuration;
@@ -45,7 +43,7 @@ namespace HazardToSociety.Server.Services
         {
             //read config options from db
             var locationOptions = new NoaaLocationOptions();
-            await foreach (var location in _weatherClient.GetLocations(locationOptions, cancellationToken))
+            await foreach (var location in _weatherClient.GetLocations(locationOptions).WithCancellation(cancellationToken))
             {
                 _logger.LogDebug("Processing: {Location}", location);
                 var noaaDatasetOptions = new NoaaDatasetOptions()
@@ -64,7 +62,8 @@ namespace HazardToSociety.Server.Services
                         EndDate = dataset.MaxDate
                     };
                     //get data
-                    await foreach (var data in _weatherClient.GetData(noaaDataOptions, cancellationToken))
+                    var allData = _weatherClient.GetData(noaaDataOptions, cancellationToken);
+                    await foreach (var data in allData.WithCancellation(cancellationToken))
                     {
                         _logger.LogDebug("Data received: {Data}", data);
                     }

@@ -36,4 +36,10 @@ namespace HazardToSociety.Shared.Models
         public int DataCoverage { get; init; }
         public string Id { get; init; }
     }
+
+    public record NoaaDataCategories
+    {
+        public string Name { get; set; }
+        public string Id { get; set; }
+    }
 }

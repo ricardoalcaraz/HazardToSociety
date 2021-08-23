@@ -36,7 +36,7 @@ namespace HazardToSociety.Server
             services.AddHttpClient();
             services.AddSingleton<IQueryBuilderService, QueryBuilderService>();
             services.AddMediatR(typeof(Startup));
-            if (_env.IsDevelopment())
+            if (_configuration.GetValue<bool>("EnableBackgroundService"))
             {
                 services.AddHostedService<WeatherService>();
             }

@@ -43,6 +43,13 @@ namespace HazardToSociety.Shared.Models
         public int DataCategoryId { get; init; }
     }
 
+    public record NoaaDataCategoryOptions : NoaaOptions
+    {
+        public string DataSetId { get; init; }
+        public string LocationId { get; init; }
+        public string StationId { get; init; }
+    }
+    
     public enum TempUnit
     {
         Standard,

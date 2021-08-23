@@ -1,0 +1,21 @@
+@using HazardToSociety.Shared.Models
+@inject HttpClient _httpClient;
+
+<h3>DataTypes</h3>
+
+@if (_dataTypes != null)
+{
+    <ul>
+        @foreach (var dataType in _dataTypes)
+        {
+            <li>@dataType</li>
+        }
+    </ul>
+}
+
+@code {
+    private IEnumerable<NoaaDataType> _dataTypes;
+    
+    protected override async Task OnInitializedAsync() 
+        => _dataTypes = await _httpClient.GetFromJsonAsync<IEnumerable<NoaaDataType>>("api/records/data-types");
+}

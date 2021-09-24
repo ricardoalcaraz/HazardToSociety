@@ -51,7 +51,8 @@ namespace HazardToSociety.Shared.Utilities
         public ConfiguredCancelableAsyncEnumerable<NoaaLocation> GetLocations(NoaaLocationOptions locationOptions,
             CancellationToken cancellationToken)
         {
-            return GetAllPagedData<NoaaLocation, NoaaLocationOptions>("locations", locationOptions).WithCancellation(cancellationToken);
+            return GetAllPagedData<NoaaLocation, NoaaLocationOptions>("locations", locationOptions, cancellationToken)
+                .WithCancellation(cancellationToken);
         }
         
         public IAsyncEnumerable<NoaaData> GetData(NoaaDataOptions options, CancellationToken cancellationToken)

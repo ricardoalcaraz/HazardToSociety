@@ -17,22 +17,76 @@
     </style>
 </head>
 
-<body style="background-color: black;">
+<body style="background-color: grey;">
     <div id="app">
         <div class="loading">Loading...</div>
         <link rel="stylesheet"
             href="data:text/css,.loading%7Bfont-family%3A'Franklin%20Gothic%20Medium'%2C'Arial%20Narrow'%2CArial%2Csans-serif%3Bcolor%3A%2388a%3Bfont-size%3A18px%3Btext-align%3Acenter%3Bwidth%3A150px%3Bheight%3A150px%3Bposition%3Afixed%3Btop%3A0%3Bbottom%3A0%3Bleft%3A0%3Bright%3A0%3Bmargin%3Aauto%7D.loading%3A%3Aafter%7Bcontent%3A''%3Bborder%3Asolid%2010px%3Bborder-color%3A%2388a%20%23eee%20%23eee%3Bborder-radius%3A60px%3Bposition%3Aabsolute%3Bwidth%3A60px%3Bheight%3A60px%3Btop%3A0%3Bbottom%3A0%3Bleft%3A0%3Bright%3A0%3Bmargin%3Aauto%3Banimation%3Arotation%201.5s%20linear%200s%20infinite%7D%40keyframes%20rotation%7B0%25%7Btransform%3Arotate(45deg)%7D100%25%7Btransform%3Arotate(405deg)%7D%7D" />
     </div>
-
+    <div id="globeViz"></div>
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script src="//unpkg.com/three"></script>
+    <script src="//unpkg.com/three/examples/js/controls/TrackballControls.js"></script>
+    <script src="//unpkg.com/three-globe"></script>
+    <script src="index.js"></script>
     <script>
         Blazor.start().then(function () {
-            //start three.js globe
+            // Gen random data
+            const N = 300;
+            const gData = [...Array(N).keys()].map(() => ({
+                lat: (Math.random() - 0.5) * 180,
+                lng: (Math.random() - 0.5) * 360,
+                size: Math.random() / 3,
+                color: ['red', 'white', 'blue', 'green'][Math.round(Math.random() * 3)]
+            }));
+
+            const Globe = new ThreeGlobe()
+                .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+                .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+                .pointsData(gData)
+                .pointAltitude('size')
+                .pointColor('color');
+
+            setTimeout(() => {
+                gData.forEach(d => d.size = Math.random());
+                Globe.pointsData(gData);
+            }, 4000);
+
+            // Setup renderer
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('globeViz').appendChild(renderer.domElement);
+
+            // Setup scene
+            const scene = new THREE.Scene();
+            scene.add(Globe);
+            scene.add(new THREE.AmbientLight(0xbbbbbb));
+            scene.add(new THREE.DirectionalLight(0xffffff, 0.6));
+
+            // Setup camera
+            const camera = new THREE.PerspectiveCamera();
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            camera.position.z = 500;
+
+            // Add camera controls
+            const tbControls = new THREE.TrackballControls(camera, renderer.domElement);
+            tbControls.minDistance = 101;
+            tbControls.rotateSpeed = 5;
+            tbControls.zoomSpeed = 0.8;
+
+            // Kick-off renderer
+            (function animate() { // IIFE
+                // Frame cycle
+                tbControls.update();
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            })();
         });
     </script>
 </body>

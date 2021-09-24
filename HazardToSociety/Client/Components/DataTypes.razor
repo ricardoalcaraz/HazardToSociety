@@ -1,22 +1,50 @@
 @using HazardToSociety.Shared.Models
 @using HazardToSociety.Server
+@using HazardToSociety.Shared.Utilities
 @inject HttpClient _httpClient;
+@inject IQueryBuilderService _queryBuilderService;
 
 <h3>DataTypes</h3>
-
-@if (_dataTypes != null)
+<label>
+    Limit Size
+    <input type="number" @bind="LimitSize"/>
+</label>
+@if (PagedData != null)
 {
-    <ul>
-        @foreach (var dataType in _dataTypes.Results)
-        {
-            <li>@dataType</li>
-        }
-    </ul>
+    <button @onclick="GetNextPage">Next Page</button>
+    <div class="itemList">
+            <ul>
+                @foreach (var dataType in NoaaDataTypeList)
+                {
+                    <li>@dataType</li>
+                }
+            </ul>
+    </div>
 }
 
 @code {
-    private NoaaPagedData<NoaaDataType> _dataTypes;
+    private int LimitSize { get; set; }
+    private NoaaPagedData<NoaaDataType> PagedData { get; set; }
+    private List<NoaaDataType> NoaaDataTypeList { get; set; } = new();
     
-    protected override async Task OnInitializedAsync() 
-        => _dataTypes = await _httpClient.GetFromJsonAsync<NoaaPagedData<NoaaDataType>>("api/records/data-types");
+    protected override async Task OnInitializedAsync()
+    {
+        await GetData(new NoaaDataTypeOptions());
+        NoaaDataTypeList.AddRange(PagedData.Results);
+    }
+
+    private async Task GetData(NoaaDataTypeOptions options)
+    {
+        var url = _queryBuilderService.GetUrl("api/records/data-types", options);
+        var pagedData = await _httpClient.GetFromJsonAsync<NoaaPagedData<NoaaDataType>>(url);
+        PagedData = pagedData;
+    }
+
+    private async Task GetNextPage()
+    {
+        var offset = PagedData.Metadata.ResultSet.Offset + PagedData.Metadata.ResultSet.Limit;
+        await GetData(new NoaaDataTypeOptions() { Offset = offset , Limit = LimitSize});
+        NoaaDataTypeList.AddRange(PagedData.Results);
+    }
+
 }

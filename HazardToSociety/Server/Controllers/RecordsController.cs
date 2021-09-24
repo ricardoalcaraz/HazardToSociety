@@ -20,20 +20,11 @@ namespace HazardToSociety.Server.Controllers
             _weatherClient = weatherClient;
         }
 
-        [HttpGet]
-        public IEnumerable<NoaaLocation> Records()
-        {
-            return new List<NoaaLocation>()
-            {
-                new() { Name = "Los Angeles" },
-                new() { Name = "New York" }
-            };
-        }
-
         [HttpGet("data-types")]
-        public async Task<NoaaPagedData<NoaaDataType>> GetDataTypes()
+        public async Task<NoaaPagedData<NoaaDataType>> GetDataTypes([FromQuery]NoaaDataTypeOptions options)
         {
-            return await _weatherClient.GetDataTypes(new NoaaDataTypeOptions());
+            options ??= new NoaaDataTypeOptions();
+            return await _weatherClient.GetDataTypes(options);
         }
     }
 }

@@ -6,6 +6,7 @@ namespace HazardToSociety.Shared.Utilities
     public interface IQueryBuilderService
     {
         public string GetQuery(object options);
+        public string GetUrl(string baseUrl, object options);
     }
 
     public class QueryBuilderService : IQueryBuilderService
@@ -24,6 +25,8 @@ namespace HazardToSociety.Shared.Utilities
 
             return string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}";
         }
+
+        public string GetUrl(string baseUrl, object options) => $"{baseUrl}{GetQuery(options)}";
 
         private static string GetPropertyValueByType(object value)
         {

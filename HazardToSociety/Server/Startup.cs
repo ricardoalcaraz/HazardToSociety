@@ -3,6 +3,7 @@ using HazardToSociety.Shared.Utilities;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,6 +38,9 @@ namespace HazardToSociety.Server
             {
                 services.AddHostedService<WeatherService>();
             }
+
+            services.AddDbContext<WeatherContext>(
+                options => options.UseSqlServer(_configuration.GetConnectionString("WeatherContext")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

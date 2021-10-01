@@ -14,8 +14,10 @@ namespace HazardToSociety.Shared.Utilities
 {
     public interface IWeatherClient
     {
-        public ConfiguredCancelableAsyncEnumerable<NoaaLocation> GetLocations(NoaaLocationOptions locationOptions,
+        public IAsyncEnumerable<NoaaLocation> GetAllLocations(NoaaLocationOptions locationOptions,
             CancellationToken cancellationToken = default);
+
+        public Task<NoaaPagedData<NoaaLocation>> GetLocations(NoaaLocationOptions locationOptions, CancellationToken cancellationToken = default);
         public IAsyncEnumerable<NoaaData> GetData(NoaaDataOptions options, 
             CancellationToken cancellationToken = default);
         public IAsyncEnumerable<NoaaDataSet> GetDataSet(NoaaDatasetOptions options, 
@@ -48,13 +50,18 @@ namespace HazardToSociety.Shared.Utilities
         }
         
         
-        public ConfiguredCancelableAsyncEnumerable<NoaaLocation> GetLocations(NoaaLocationOptions locationOptions,
+        public IAsyncEnumerable<NoaaLocation> GetAllLocations(NoaaLocationOptions locationOptions,
             CancellationToken cancellationToken)
         {
-            return GetAllPagedData<NoaaLocation, NoaaLocationOptions>("locations", locationOptions, cancellationToken)
-                .WithCancellation(cancellationToken);
+            return GetAllPagedData<NoaaLocation, NoaaLocationOptions>("locations", locationOptions, cancellationToken);
         }
-        
+
+        public async Task<NoaaPagedData<NoaaLocation>> GetLocations(NoaaLocationOptions locationOptions, CancellationToken cancellationToken)
+        {
+            var url = "locations" + _queryBuilderService.GetQuery(locationOptions);
+            return await GetNextResultSet<NoaaLocation>(url, cancellationToken);
+        }
+
         public IAsyncEnumerable<NoaaData> GetData(NoaaDataOptions options, CancellationToken cancellationToken)
             => GetAllPagedData<NoaaData, NoaaDataOptions>("data", options, cancellationToken);
 

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using HazardToSociety.Shared.Models;
 
 namespace HazardToSociety.Shared.Utilities
 {
@@ -30,12 +31,11 @@ namespace HazardToSociety.Shared.Utilities
 
         private static string GetPropertyValueByType(object value)
         {
-            if (value is DateTime dateTime)
+            return value switch
             {
-                return dateTime.ToString("yyyy-MM-dd");
-            }
-
-            return value?.ToString();
+                DateTime dateTime => dateTime.ToString("yyyy-MM-dd"),
+                _ => value?.ToString()
+            };
         }
     }
 }

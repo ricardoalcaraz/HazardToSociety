@@ -1,3 +1,4 @@
+using HazardToSociety.Server.Models;
 using HazardToSociety.Server.Services;
 using HazardToSociety.Shared.Utilities;
 using MediatR;

@@ -6,8 +6,8 @@ namespace HazardToSociety.Shared.Models
     {
         public DateTime? StartDate { get; init; }
         public DateTime? EndDate { get; init; }
-        public string SortField { get; init; }
-        public string SortOrder { get; init; }
+        public SortField SortField { get; init; }
+        public SortOrder SortOrder { get; init; }
         public int Limit { get; init; } = 25;
         public int Offset { get; init; }
     }

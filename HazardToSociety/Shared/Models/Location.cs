@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-
 namespace HazardToSociety.Shared.Models;
 
-public class WeatherRecord
+[Index(nameof(Name), IsUnique = true)]
+public class Location
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public double Value { get; set; }
+    public string NoaaId { get; set; }
 }

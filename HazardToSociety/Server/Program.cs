@@ -1,4 +1,5 @@
 ﻿using System;
+using HazardToSociety.Server.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,19 +19,13 @@ namespace HazardToSociety.Server
             {
                 using var scope = webHostBuilder.Services.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<WeatherContext>();
-                if (!dbContext.Database.EnsureCreated())
-                {
-                    logger.LogInformation("Migrating database");
-                    dbContext.Database.Migrate();
-                }
-                else
-                {
-                    logger.LogInformation("Created new database");
-                }
+                logger.LogInformation("Migrating database");
+                dbContext.Database.Migrate();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unable to migrate database");
+                throw;
             }
             
             webHostBuilder.Run();

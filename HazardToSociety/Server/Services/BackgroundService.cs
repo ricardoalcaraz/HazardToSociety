@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace HazardToSociety.Server
+namespace HazardToSociety.Server.Services
 {
     /// <summary>
     /// Base class for implementing a long running <see cref="IHostedService"/>.
@@ -11,8 +11,8 @@ namespace HazardToSociety.Server
     public abstract class BackgroundService : IHostedService, IDisposable
     {
         private Task _executingTask;
-        private readonly CancellationTokenSource _stoppingCts = new CancellationTokenSource();
-
+        private readonly CancellationTokenSource _stoppingCts = new();
+        
         protected abstract Task ExecuteAsync(CancellationToken stoppingToken);
 
         public virtual Task StartAsync(CancellationToken cancellationToken)

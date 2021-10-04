@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HazardToSociety.Client", "H
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HazardToSociety.Shared", "HazardToSociety\Shared\HazardToSociety.Shared.csproj", "{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HazardToSociety.Tests", "HazardToSociety.Tests\HazardToSociety.Tests.csproj", "{AD0E4B84-F706-4882-8D1F-15362B334455}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8CB3EFE-1307-43D1-B0B5-C640CB99D228}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD0E4B84-F706-4882-8D1F-15362B334455}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD0E4B84-F706-4882-8D1F-15362B334455}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD0E4B84-F706-4882-8D1F-15362B334455}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD0E4B84-F706-4882-8D1F-15362B334455}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

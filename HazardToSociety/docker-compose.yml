@@ -1,21 +1,32 @@
 version: "3.3"
 services:
-  hazardtosociety:
-    image: ghcr.io/ricardoalcaraz/hazardtosociety:latest
-    build:
-      context: ./
-    container_name: HazardToSociety
+#  hazardtosociety:
+#    image: ghcr.io/ricardoalcaraz/hazardtosociety:latest
+#    build:
+#      context: ./
+#    container_name: HazardToSociety
+#    restart: unless-stopped
+#    labels:
+#      - traefik.enable=true
+#      - traefik.http.routers.hazardtosociety.rule=(Host(`hazardtosociety.com`) || Host(`www.hazardtosociety.com`))
+#      - traefik.http.routers.hazardtosociety.entrypoints=websecure
+#      - traefik.http.routers.hazardtosociety.tls=true
+#      - traefik.http.routers.hazardtosociety.tls.certresolver=le
+#    networks:
+#      - web
+#    environment:
+#      - NoaaApiKey
+  database:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: weather-db
     restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.hazardtosociety.rule=(Host(`hazardtosociety.com`) || Host(`www.hazardtosociety.com`))
-      - traefik.http.routers.hazardtosociety.entrypoints=websecure
-      - traefik.http.routers.hazardtosociety.tls=true
-      - traefik.http.routers.hazardtosociety.tls.certresolver=le
+    ports:
+      - "1433:1433"
     networks:
       - web
     environment:
-      - NoaaApiKey
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=yourStrong(!)Password
 
 networks:
   web:

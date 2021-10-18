@@ -24,7 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Mediatr\Command" />
       <Folder Include="Migrations" />
     </ItemGroup>
 

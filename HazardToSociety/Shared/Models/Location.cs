@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 namespace HazardToSociety.Shared.Models;
 
@@ -7,4 +8,6 @@ public class Location
     public int Id { get; set; }
     public string Name { get; set; }
     public string NoaaId { get; set; }
+    public DateTime MinDate { get; set; }
+    public DateTime MaxDate { get; set; }
 }

@@ -18,7 +18,9 @@ namespace HazardToSociety.Shared.Utilities
             CancellationToken cancellationToken = default);
 
         public Task<NoaaPagedData<NoaaLocation>> GetLocations(NoaaLocationOptions locationOptions, CancellationToken cancellationToken = default);
-        public IAsyncEnumerable<NoaaData> GetData(NoaaDataOptions options, 
+        public IAsyncEnumerable<NoaaData> GetAllData(NoaaDataOptions options, 
+            CancellationToken cancellationToken = default);
+        public Task<NoaaPagedData<NoaaData>> GetData(NoaaDataOptions options, 
             CancellationToken cancellationToken = default);
         public IAsyncEnumerable<NoaaDataSet> GetDataSet(NoaaDatasetOptions options, 
             CancellationToken cancellationToken = default);
@@ -62,8 +64,12 @@ namespace HazardToSociety.Shared.Utilities
             return await GetNextResultSet<NoaaLocation>(url, cancellationToken);
         }
 
-        public IAsyncEnumerable<NoaaData> GetData(NoaaDataOptions options, CancellationToken cancellationToken)
+        public IAsyncEnumerable<NoaaData> GetAllData(NoaaDataOptions options, CancellationToken cancellationToken)
             => GetAllPagedData<NoaaData, NoaaDataOptions>("data", options, cancellationToken);
+
+        public async Task<NoaaPagedData<NoaaData>> GetData(NoaaDataOptions options,
+            CancellationToken cancellationToken = default) =>
+                await GetNextResultSet<NoaaData>("data", options, cancellationToken);
 
         public IAsyncEnumerable<NoaaDataSet> GetDataSet(NoaaDatasetOptions options,
             CancellationToken cancellationToken)
@@ -81,6 +87,13 @@ namespace HazardToSociety.Shared.Utilities
             return await GetNextResultSet<NoaaDataType>(url, cancellationToken);
         }
 
+        private async Task<NoaaPagedData<T>> GetNextResultSet<T>(string url, NoaaOptions options,
+            CancellationToken cancellationToken)
+        {
+            var urlWithParams = url + _queryBuilderService.GetQuery(options);
+            return await GetNextResultSet<T>(urlWithParams, cancellationToken);
+        }
+        
         private async Task<NoaaPagedData<T>> GetNextResultSet<T>(string url, CancellationToken cancellationToken)
         {
             var request = await _httpClient.GetAsync(url, cancellationToken);
@@ -106,7 +119,7 @@ namespace HazardToSociety.Shared.Utilities
                 {
                     yield return item;
                 }
-                isNextPageAvailable = pagedData.Metadata.ResultSet.Count > options.Offset;
+                isNextPageAvailable = pagedData.Metadata.ResultSet.Count > (options.Offset + options.Limit);
             }
         }
 

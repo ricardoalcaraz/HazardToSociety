@@ -4,12 +4,5 @@ using MediatR;
 
 namespace HazardToSociety.Server.Mediatr.Query;
 
-public class LocationsQuery : IRequest<IEnumerable<Location>>
-{
-    public LocationsQuery(NoaaLocationOptions locationOptions)
-    {
-        LocationOptions = locationOptions;
-    }
-
-    public NoaaLocationOptions LocationOptions { get; }
-}
+public record LocationsQuery : NoaaLocationOptions, IRequest<IEnumerable<Location>> { }
+public record DataQuery : NoaaDataOptions, IRequest<IEnumerable<NoaaData>> { }

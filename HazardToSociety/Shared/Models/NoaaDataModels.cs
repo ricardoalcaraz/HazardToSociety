@@ -17,6 +17,8 @@ namespace HazardToSociety.Shared.Models
         public string Id { get; init; }
         public float DataCoverage { get; init; }
         public string Name { get; init; }
+        public DateTime MinDate { get; set; }
+        public DateTime MaxDate { get; set; }
     }
 
     public record NoaaData
@@ -25,7 +27,7 @@ namespace HazardToSociety.Shared.Models
         public string DataType { get; init; }
         public string Station { get; init; }
         public string Attributes { get; init; }
-        public int Value { get; init; }
+        public decimal Value { get; init; }
     }
 
     public record NoaaDataType

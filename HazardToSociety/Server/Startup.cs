@@ -1,3 +1,4 @@
+using System;
 using HazardToSociety.Server.Models;
 using HazardToSociety.Server.Services;
 using HazardToSociety.Shared.Utilities;
@@ -41,7 +42,13 @@ namespace HazardToSociety.Server
             }
 
             services.AddDbContext<WeatherContext>(
-                options => options.UseSqlServer(_configuration.GetConnectionString("WeatherContext")));
+                options =>
+                {
+                    var folder = Environment.SpecialFolder.LocalApplicationData;
+                    var path = Environment.GetFolderPath(folder);
+                    var dbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}blogging.db";
+                    options.UseSqlite($"Data Source={dbPath}");
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

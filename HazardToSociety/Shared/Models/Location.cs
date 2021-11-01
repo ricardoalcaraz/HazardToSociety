@@ -10,4 +10,7 @@ public class Location
     public string NoaaId { get; set; }
     public DateTime MinDate { get; set; }
     public DateTime MaxDate { get; set; }
+    public string City { get; set; }
+    public string State { get; set; }
+    public string Country { get; set; }
 }

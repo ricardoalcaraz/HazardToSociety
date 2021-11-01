@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using HazardToSociety.Server.Mediatr.Command;
-using HazardToSociety.Server.Mediatr.Query;
+using HazardToSociety.Server.Models;
 using HazardToSociety.Shared.Models;
+using HazardToSociety.Shared.Utilities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -36,20 +37,31 @@ namespace HazardToSociety.Server.Services
                 {
                     await using var scope = _serviceProvider.CreateAsyncScope();
                     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-                    var locations = await mediator.Send(new AddLocationsToTrack(), stoppingToken);
-                    foreach (var location in locations)
-                    {
-                        //dataset of interests goes here
-                        var dataQuery = new DataQuery()
+                    var dbContext = scope.ServiceProvider.GetRequiredService<WeatherContext>();
+                    var weatherClient = scope.ServiceProvider.GetRequiredService<IWeatherClient>();
+                    
+                    //todo parallelize requests for faster processing
+                    var dataQueriesForLocation = await dbContext.Locations
+                        .Select(l => new NoaaDataOptions()
                         {
                             DataSetId = "GHCND",
-                            StartDate = location.MaxDate - TimeSpan.FromDays(2),
-                            EndDate = location.MaxDate,
-                            LocationId = location.NoaaId,
+                            StartDate = l.MaxDate - TimeSpan.FromDays(7),
+                            EndDate = l.MaxDate,
+                            LocationId = l.NoaaId,
                             Units = TempUnit.Standard
-                        };
-                        var data = await mediator.Send(dataQuery, stoppingToken);
-                        var groupedData = data
+                        }).ToListAsync(stoppingToken);
+                    
+                    foreach (var dataQuery in dataQueriesForLocation)
+                    {
+                        var asyncDataSet = weatherClient.GetAllData(dataQuery, stoppingToken);
+                        
+                        var noaaDataset = new List<NoaaData>();
+                        await foreach (var dataset in asyncDataSet.WithCancellation(stoppingToken))
+                        {
+                            noaaDataset.Add(dataset);
+                        }
+
+                        var groupedData = noaaDataset
                             .GroupBy(d => d.DataType)
                             .Select(g => new
                             {
@@ -60,8 +72,13 @@ namespace HazardToSociety.Server.Services
                             });
                         foreach (var entry in groupedData)
                         {
+                            //publish mediator event for each group of data
                             _logger.LogInformation("{DataType}, {Average}, {Count}", entry.DataType, entry.Average, entry.Count);
                         }
+                        //process data month by month for faster queries
+                        //when a new location enters we process the entire history
+                        //keep track of execution times?
+                        //save appropriate temps
                     }
                     //get dataset options
                     //get data

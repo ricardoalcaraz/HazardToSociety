@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using HazardToSociety.Server.Mediatr.Command;
 using HazardToSociety.Server.Models;
+using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +14,7 @@ namespace HazardToSociety.Server
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var webHostBuilder = CreateHostBuilder(args).Build();
 
@@ -19,8 +23,31 @@ namespace HazardToSociety.Server
             {
                 using var scope = webHostBuilder.Services.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<WeatherContext>();
+                var mediatr = scope.ServiceProvider.GetRequiredService<IMediator>();
                 logger.LogInformation("Migrating database");
-                dbContext.Database.Migrate();
+                //Add timeout token?
+                await dbContext.Database.MigrateAsync();
+                var updatesNeeded = await dbContext.UpdateHistories
+                    .Where(uh => uh.RequiresUpdates)
+                    .ToListAsync();
+                logger.LogInformation("The following updates are needed: {@Updates}", updatesNeeded);
+
+                foreach (var updateNeeded in updatesNeeded)
+                {
+                    switch (updateNeeded.UpdateType)
+                    {
+                        case UpdateType.InitialSeeding: 
+                            await mediatr.Send(new AddLocationsToTrack());
+                            updateNeeded.DateUpdated = DateTime.Now;
+                            updateNeeded.DataUpdated = nameof(AddLocationsToTrack);
+                            break;
+                        case UpdateType.Invalid:
+                        default:
+                            logger.LogWarning("Received invalid Update Type:{UpdateType}", updateNeeded.UpdateType);
+                            throw new ArgumentException(nameof(updateNeeded.UpdateType));
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -28,10 +55,10 @@ namespace HazardToSociety.Server
                 throw;
             }
             
-            webHostBuilder.Run();
+            await webHostBuilder.RunAsync();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }

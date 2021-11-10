@@ -41,17 +41,13 @@ namespace HazardToSociety.Server.Services
                     var weatherClient = scope.ServiceProvider.GetRequiredService<IWeatherClient>();
                     
                     //todo parallelize requests for faster processing
-                    var dataQueriesForLocation = await dbContext.Locations
-                        .Select(l => new NoaaDataOptions()
-                        {
-                            DataSetId = "GHCND",
-                            StartDate = l.MaxDate - TimeSpan.FromDays(7),
-                            EndDate = l.MaxDate,
-                            LocationId = l.NoaaId,
-                            Units = TempUnit.Standard
-                        }).ToListAsync(stoppingToken);
-                    
-                    foreach (var dataQuery in dataQueriesForLocation)
+                    var allLocations = await dbContext.Locations
+                        .Where(l => l.Country == "US")
+                        .ToDictionaryAsync(options => options.NoaaId, l => l, stoppingToken);
+
+
+                    var dataQueries = GetDataQueries(allLocations.Values).ToList();
+                    foreach (var dataQuery in dataQueries)
                     {
                         var asyncDataSet = weatherClient.GetAllData(dataQuery, stoppingToken);
                         
@@ -61,20 +57,32 @@ namespace HazardToSociety.Server.Services
                             noaaDataset.Add(dataset);
                         }
 
-                        var groupedData = noaaDataset
-                            .GroupBy(d => d.DataType)
+                        var dataByKey = noaaDataset
+                            .GroupBy(d => new {d.DataType, d.Date})
                             .Select(g => new
                             {
                                 DataType = g.Key,
                                 Average = g.Select(a => a.Value).Average(),
-                                Count = g.Count(),
-                                Data = g.Select(a => a.Value)
+                                Max = g.Select(a => a.Value).Max(),
+                                Min = g.Select(a => a.Value).Min(),
                             });
-                        foreach (var entry in groupedData)
+
+                        foreach (var entry in dataByKey)
                         {
-                            //publish mediator event for each group of data
-                            _logger.LogInformation("{DataType}, {Average}, {Count}", entry.DataType, entry.Average, entry.Count);
+                            var date = entry.DataType.Date;
+                            var locationDataPoint = new LocationDataPoint()
+                            {
+                                Average = entry.Average,
+                                Date = date.Date,
+                                LocationId = allLocations[dataQuery.LocationId].Id,
+                                Max = entry.Max,
+                                Min = entry.Min
+                            };
+                            dbContext.LocationDataPoints.Add(locationDataPoint);
                         }
+
+                        
+                        await dbContext.SaveChangesAsync(stoppingToken);
                         //process data month by month for faster queries
                         //when a new location enters we process the entire history
                         //keep track of execution times?
@@ -89,6 +97,28 @@ namespace HazardToSociety.Server.Services
                 {
                     _logger.LogError(httpRequestException, 
                         "Unable to retrieve data from source");
+                }
+            }
+        }
+        
+        public IEnumerable<NoaaDataOptions> GetDataQueries(IEnumerable<Location> locations)
+        {
+            foreach (var location in locations)
+            {
+                var endDate = location.MinDate;
+                while (endDate < location.MaxDate)
+                {
+                    var startDate = endDate;
+                    endDate = startDate + TimeSpan.FromDays(7);
+
+                    yield return new NoaaDataOptions
+                    {
+                        DataSetId = "GHCND",
+                        StartDate = startDate,
+                        EndDate = endDate,
+                        LocationId = location.NoaaId,
+                        Units = TempUnit.Standard
+                    };
                 }
             }
         }

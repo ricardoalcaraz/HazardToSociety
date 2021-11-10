@@ -29,4 +29,9 @@
       <Folder Include="Migrations" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Migrations\20211102001800_RefinedLocations.cs" />
+      <Compile Remove="Migrations\20211102001800_RefinedLocations.Designer.cs" />
+    </ItemGroup>
+
 </Project>

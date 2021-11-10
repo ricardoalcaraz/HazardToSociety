@@ -119,7 +119,7 @@ namespace HazardToSociety.Shared.Utilities
                 {
                     yield return item;
                 }
-                isNextPageAvailable = pagedData.Metadata.ResultSet.Count > (options.Offset + options.Limit);
+                isNextPageAvailable = options.Offset + options.Limit <= pagedData.Metadata.ResultSet.Count;
             }
         }
 

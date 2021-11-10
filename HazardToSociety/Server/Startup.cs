@@ -44,10 +44,17 @@ namespace HazardToSociety.Server
             services.AddDbContext<WeatherContext>(
                 options =>
                 {
-                    var folder = Environment.SpecialFolder.LocalApplicationData;
-                    var path = Environment.GetFolderPath(folder);
-                    var dbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}blogging.db";
-                    options.UseSqlite($"Data Source={dbPath}");
+                    if (_configuration.GetValue<bool>("UseSqlLite"))
+                    {
+                        const Environment.SpecialFolder folder = Environment.SpecialFolder.LocalApplicationData;
+                        var path = Environment.GetFolderPath(folder);
+                        var dbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}blogging.db";
+                        options.UseSqlite(_configuration.GetConnectionString("WeatherContextSqlLite"));
+                    }
+                    else
+                    {
+                        options.UseSqlServer(_configuration.GetConnectionString("WeatherContext"));
+                    }
                 });
         }
 

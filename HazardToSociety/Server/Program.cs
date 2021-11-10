@@ -26,6 +26,8 @@ namespace HazardToSociety.Server
                 var mediatr = scope.ServiceProvider.GetRequiredService<IMediator>();
                 logger.LogInformation("Migrating database");
                 //Add timeout token?
+                //await dbContext.Database.EnsureDeletedAsync();
+                //await dbContext.Database.EnsureCreatedAsync();
                 await dbContext.Database.MigrateAsync();
                 var updatesNeeded = await dbContext.UpdateHistories
                     .Where(uh => uh.RequiresUpdates)
@@ -40,6 +42,7 @@ namespace HazardToSociety.Server
                             await mediatr.Send(new AddLocationsToTrack());
                             updateNeeded.DateUpdated = DateTime.Now;
                             updateNeeded.DataUpdated = nameof(AddLocationsToTrack);
+                            updateNeeded.RequiresUpdates = false;
                             break;
                         case UpdateType.Invalid:
                         default:

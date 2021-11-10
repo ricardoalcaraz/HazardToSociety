@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using HazardToSociety.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +13,7 @@ public class WeatherContext : DbContext
     public DbSet<WeatherRecord> WeatherRecords { get; set; }
     public DbSet<UpdateHistory> UpdateHistories { get; set; }
     public DbSet<Location> Locations { get; set; }
+    public DbSet<LocationDataPoint> LocationDataPoints { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

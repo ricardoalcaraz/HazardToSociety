@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -36,36 +37,67 @@ public class AddLocationsToTrackHandler : IRequestHandler<AddLocationsToTrack, I
             DataCategoryId = "PRCP",
             LocationCategoryId = "CITY",
         };
-        
+
+        var locations = new List<Location>();
         await foreach (var noaaLocation in _weatherClient.GetAllLocations(locationsQuery, cancellationToken))
         {
-            var nameTokens = noaaLocation.Name.Split(',');
-            var location = new Location
+            try
             {
-                MaxDate = noaaLocation.MaxDate,
-                MinDate = noaaLocation.MinDate,
-                Name = noaaLocation.Name,
-                NoaaId = noaaLocation.Id
-            };
-            
-            if (nameTokens.Length == 3)
-            {
-                location.City = nameTokens[0];
-                location.State = nameTokens[1];
-                location.Country = nameTokens[2];
-            }
-            else
-            {
-                location.Country = nameTokens[1];
-            }
-            
+                var splitName = noaaLocation.Name.Split(',');
+                var city = splitName[0];
+                var area = splitName[1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var location = new Location
+                {
+                    MaxDate = noaaLocation.MaxDate,
+                    MinDate = noaaLocation.MinDate,
+                    Name = noaaLocation.Name,
+                    NoaaId = noaaLocation.Id,
+                    City = city
+                };
                 
-            _db.Locations.Add(location);
-            _logger.LogDebug("Saving {Name} into db. Id: {Id}", location.Name, location.Id);
-        }
+                if (area.Length == 2)
+                {
+                    location.State = area[0];
+                    location.Country = area[1];
+                }
+                else
+                {
+                    location.Country = area[0];
+                }
 
-        _logger.LogInformation("Saving {Count} locations into database", _db.Locations.Count());
+                locations.Add(location);
+                _logger.LogDebug("Saving [{Name}] into db. Id: {Id}", location.Name, location.NoaaId);
+            }
+            catch (IndexOutOfRangeException outOfRangeException)
+            {
+                _logger.LogError(outOfRangeException, "Item: [{Item}]", noaaLocation);
+            }
+        }
+        
+        _logger.LogInformation("Retrieve {Count} locations from API", locations.Count);
+        
+        var existingLocations = (await _db.Locations
+            .Select(l => l.NoaaId)
+            .ToListAsync(cancellationToken)).ToHashSet();
+
+        var locationsToAdd = locations.Where(l => !existingLocations.Contains(l.NoaaId)).ToList();
+        var uniqueLocations = locationsToAdd
+            .GroupBy(lt => lt.Name)
+            .Select(g =>
+            {
+                var count = g.Count();
+                if (count != 1)
+                {
+                    _logger.LogWarning("{Key} has {Count} elements", g.Key, count);
+                }
+
+                return g.First();
+            }).ToList();
+        _logger.LogInformation("Saving {Count} locations into database", uniqueLocations.Count);
+        _db.Locations.AddRange(uniqueLocations);
+        
         await _db.SaveChangesAsync(cancellationToken);
+        
         return await _db.Locations.ToListAsync(cancellationToken);
     }
 } 

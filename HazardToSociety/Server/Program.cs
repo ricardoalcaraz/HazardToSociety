@@ -25,9 +25,6 @@ namespace HazardToSociety.Server
                 var dbContext = scope.ServiceProvider.GetRequiredService<WeatherContext>();
                 var mediatr = scope.ServiceProvider.GetRequiredService<IMediator>();
                 logger.LogInformation("Migrating database");
-                //Add timeout token?
-                //await dbContext.Database.EnsureDeletedAsync();
-                //await dbContext.Database.EnsureCreatedAsync();
                 await dbContext.Database.MigrateAsync();
                 var updatesNeeded = await dbContext.UpdateHistories
                     .Where(uh => uh.RequiresUpdates)

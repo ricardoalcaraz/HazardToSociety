@@ -26,7 +26,6 @@
 
     <ItemGroup>
       <Folder Include="Mediatr\Query" />
-      <Folder Include="Migrations" />
     </ItemGroup>
 
     <ItemGroup>

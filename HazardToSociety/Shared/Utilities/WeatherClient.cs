@@ -38,17 +38,13 @@ namespace HazardToSociety.Shared.Utilities
         private readonly IQueryBuilderService _queryBuilderService;
         private readonly HttpClient _httpClient;
         
-        public WeatherClient(IHttpClientFactory httpClientFactory, 
-            IConfiguration configuration, 
+        public WeatherClient(HttpClient httpClient, 
             ILogger<WeatherClient> logger,
             IQueryBuilderService queryBuilderService)
         {
+            _httpClient = httpClient;
             _logger = logger;
             _queryBuilderService = queryBuilderService;
-            _httpClient = httpClientFactory.CreateClient();
-            var token = configuration["NoaaApiKey"];
-            _httpClient.DefaultRequestHeaders.Add("token", token);
-            _httpClient.BaseAddress = new Uri("https://www.ncdc.noaa.gov/cdo-web/api/v2/");
         }
         
         
@@ -97,11 +93,20 @@ namespace HazardToSociety.Shared.Utilities
         private async Task<NoaaPagedData<T>> GetNextResultSet<T>(string url, CancellationToken cancellationToken)
         {
             var request = await _httpClient.GetAsync(url, cancellationToken);
-            request.EnsureSuccessStatusCode();
+            try
+            {
+                request.EnsureSuccessStatusCode();
+                return await request.Content.ReadFromJsonAsync<NoaaPagedData<T>>(cancellationToken: cancellationToken);
+            }
+            catch (HttpRequestException requestException)
+            {
+                var content = await request.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogError(requestException, "Unable to make request: {Content}", content);
+                throw;
+            }
             // var body = await request.Content.ReadAsStringAsync(cancellationToken);
             // _logger.LogDebug(body);
             // return JsonSerializer.Deserialize<NoaaPagedData<T>>(body);
-            return await request.Content.ReadFromJsonAsync<NoaaPagedData<T>>(cancellationToken: cancellationToken);
         }
 
         private async IAsyncEnumerable<T> GetAllPagedData<T, TOptions>(string baseUrl, TOptions options, [EnumeratorCancellation] CancellationToken cancellationToken = default) where TOptions : NoaaOptions

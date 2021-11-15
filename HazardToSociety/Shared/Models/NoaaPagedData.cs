@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HazardToSociety.Server
 {
     public record NoaaPagedData<T>
     {
         public NoaaMetadata Metadata { get; set; }
-        public IEnumerable<T> Results { get; set; }
+        public IEnumerable<T> Results { get; set; } = Enumerable.Empty<T>();
     }
 
     public record NoaaMetadata

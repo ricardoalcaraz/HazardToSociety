@@ -15,12 +15,12 @@ namespace HazardToSociety.Server;
 
 public class Startup
 {
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration _config;
     private readonly IWebHostEnvironment _env;
 
-    public Startup(IConfiguration configuration, IWebHostEnvironment env)
+    public Startup(IConfiguration config, IWebHostEnvironment env)
     {
-        _configuration = configuration;
+        _config = config;
         _env = env;
     }
 
@@ -35,8 +35,8 @@ public class Startup
         services.AddWeatherClient();
         services.AddSingleton<IQueryBuilderService, QueryBuilderService>();
         services.AddMediatR(typeof(Startup));
-        services.AddWeatherContext(_configuration);
-        if (_configuration.GetValue<bool>("EnableBackgroundService"))
+        services.AddWeatherContext(_config);
+        if (_config.GetValue<bool>("EnableBackgroundService"))
         {
             services.AddHostedService<WeatherService>();
         }
@@ -45,14 +45,13 @@ public class Startup
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
+    public void Configure(IApplicationBuilder app, ILogger<Startup> logger)
     {
-        logger.LogInformation("Starting in {Environment} environment", env.EnvironmentName);
-        logger.LogInformation("ApiKey:{ApiKey}, UpdateTime:{Time}", 
-            _configuration["NoaaApiKey"], 
-            _configuration["UpdateTime"]);
+        logger.LogInformation("Starting in {Environment} environment", _env.EnvironmentName);
+        logger.LogInformation("ApiKey:{ApiKey}", _config["NoaaApiKey"]);
+        logger.LogInformation("UpdateTime:{Time}", _config["UpdateTime"]);
             
-        if (env.IsDevelopment())
+        if (_env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
             app.UseWebAssemblyDebugging();
@@ -66,7 +65,7 @@ public class Startup
 
         app.UseHttpsRedirection();
         app.UseBlazorFrameworkFiles();
-        //app.UseStaticFiles();
+        app.UseStaticFiles();
 
         app.UseRouting();
 

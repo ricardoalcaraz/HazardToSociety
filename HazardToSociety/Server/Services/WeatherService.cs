@@ -42,7 +42,7 @@ namespace HazardToSociety.Server.Services
                     
                     //todo parallelize requests for faster processing
                     var allLocations = await dbContext.Locations
-                        .Where(l => l.Country == "US")
+                        .Where(l => l.Country == "US" && l.State == "CA")
                         .ToDictionaryAsync(options => options.NoaaId, l => l, stoppingToken);
 
 
@@ -66,7 +66,6 @@ namespace HazardToSociety.Server.Services
                                 Max = g.Select(a => a.Value).Max(),
                                 Min = g.Select(a => a.Value).Min(),
                             });
-
                         foreach (var entry in dataByKey)
                         {
                             var date = entry.DataType.Date;

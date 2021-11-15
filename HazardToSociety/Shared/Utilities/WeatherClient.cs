@@ -104,9 +104,6 @@ namespace HazardToSociety.Shared.Utilities
                 _logger.LogError(requestException, "Unable to make request: {Content}", content);
                 throw;
             }
-            // var body = await request.Content.ReadAsStringAsync(cancellationToken);
-            // _logger.LogDebug(body);
-            // return JsonSerializer.Deserialize<NoaaPagedData<T>>(body);
         }
 
         private async IAsyncEnumerable<T> GetAllPagedData<T, TOptions>(string baseUrl, TOptions options, [EnumeratorCancellation] CancellationToken cancellationToken = default) where TOptions : NoaaOptions
@@ -124,7 +121,7 @@ namespace HazardToSociety.Shared.Utilities
                 {
                     yield return item;
                 }
-                isNextPageAvailable = options.Offset + options.Limit <= pagedData.Metadata.ResultSet.Count;
+                isNextPageAvailable = options.Offset + options.Limit <= pagedData.Metadata?.ResultSet.Count;
             }
         }
 

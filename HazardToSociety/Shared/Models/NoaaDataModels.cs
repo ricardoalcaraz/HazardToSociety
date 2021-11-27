@@ -27,7 +27,7 @@ namespace HazardToSociety.Shared.Models
         public string DataType { get; init; }
         public string Station { get; init; }
         public string Attributes { get; init; }
-        public float Value { get; init; }
+        public double Value { get; init; }
     }
 
     public record NoaaDataType

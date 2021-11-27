@@ -2,7 +2,8 @@ using System;
 using Microsoft.EntityFrameworkCore;
 namespace HazardToSociety.Shared.Models;
 
-[Index(nameof(Name), IsUnique = true)]
+[Index(nameof(NoaaId), IsUnique = true)]
+[Index(nameof(City))]
 public class Location
 {
     public int Id { get; set; }

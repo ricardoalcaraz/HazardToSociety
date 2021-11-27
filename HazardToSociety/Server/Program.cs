@@ -18,42 +18,33 @@ namespace HazardToSociety.Server
         {
             var webHostBuilder = CreateHostBuilder(args).Build();
 
-            var logger = webHostBuilder.Services.GetRequiredService<ILogger<Program>>();
-            try
-            {
-                using var scope = webHostBuilder.Services.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<WeatherContext>();
-                var mediatr = scope.ServiceProvider.GetRequiredService<IMediator>();
-                logger.LogInformation("Migrating database");
-                await dbContext.Database.MigrateAsync();
-                var updatesNeeded = await dbContext.UpdateHistories
-                    .Where(uh => uh.RequiresUpdates)
-                    .ToListAsync();
-                logger.LogInformation("The following updates are needed: {@Updates}", updatesNeeded);
-
-                foreach (var updateNeeded in updatesNeeded)
-                {
-                    switch (updateNeeded.UpdateType)
-                    {
-                        case UpdateType.InitialSeeding: 
-                            await mediatr.Send(new AddLocationsToTrack());
-                            updateNeeded.DateUpdated = DateTime.Now;
-                            updateNeeded.DataUpdated = nameof(AddLocationsToTrack);
-                            updateNeeded.RequiresUpdates = false;
-                            break;
-                        case UpdateType.Invalid:
-                        default:
-                            logger.LogWarning("Received invalid Update Type:{UpdateType}", updateNeeded.UpdateType);
-                            throw new ArgumentException(nameof(updateNeeded.UpdateType));
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Unable to migrate database");
-                throw;
-            }
+            // var logger = webHostBuilder.Services.GetRequiredService<ILogger<Program>>();
+            // try
+            // {
+            //     var updatesNeeded = await dbContext.UpdateHistories
+            //         .Where(uh => uh.RequiresUpdates)
+            //         .ToListAsync();
+            //     logger.LogInformation("The following updates are needed: {@Updates}", updatesNeeded);
+            //
+            //     foreach (var updateNeeded in updatesNeeded)
+            //     {
+            //         switch (updateNeeded.UpdateType)
+            //         {
+            //             case UpdateType.InitialSeeding: 
+            //                 
+            //                 break;
+            //             case UpdateType.Invalid:
+            //             default:
+            //                 logger.LogWarning("Received invalid Update Type:{UpdateType}", updateNeeded.UpdateType);
+            //                 throw new ArgumentException(nameof(updateNeeded.UpdateType));
+            //         }
+            //     }
+            // }
+            // catch (Exception ex)
+            // {
+            //     logger.LogError(ex, "Database migration failed");
+            //     throw;
+            // }
             
             await webHostBuilder.RunAsync();
         }

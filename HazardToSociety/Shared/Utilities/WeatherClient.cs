@@ -18,7 +18,7 @@ namespace HazardToSociety.Shared.Utilities
             CancellationToken cancellationToken = default);
 
         public Task<NoaaPagedData<NoaaLocation>> GetLocations(NoaaLocationOptions locationOptions, CancellationToken cancellationToken = default);
-        public IAsyncEnumerable<NoaaData> GetAllData(NoaaDataOptions options, 
+        public IAsyncEnumerable<IEnumerable<NoaaData>> GetAllData(NoaaDataOptions options, 
             CancellationToken cancellationToken = default);
         public Task<NoaaPagedData<NoaaData>> GetData(NoaaDataOptions options, 
             CancellationToken cancellationToken = default);
@@ -60,8 +60,8 @@ namespace HazardToSociety.Shared.Utilities
             return await GetNextResultSet<NoaaLocation>(url, cancellationToken);
         }
 
-        public IAsyncEnumerable<NoaaData> GetAllData(NoaaDataOptions options, CancellationToken cancellationToken)
-            => GetAllPagedData<NoaaData, NoaaDataOptions>("data", options, cancellationToken);
+        public IAsyncEnumerable<IEnumerable<NoaaData>> GetAllData(NoaaDataOptions options, CancellationToken cancellationToken)
+            => GetAllDataAsLists<NoaaData, NoaaDataOptions>("data", options, cancellationToken);
 
         public async Task<NoaaPagedData<NoaaData>> GetData(NoaaDataOptions options,
             CancellationToken cancellationToken = default) =>
@@ -125,5 +125,22 @@ namespace HazardToSociety.Shared.Utilities
             }
         }
 
+        private async IAsyncEnumerable<IEnumerable<T>> GetAllDataAsLists<T, TOptions>(string baseUrl, TOptions options, 
+            [EnumeratorCancellation] CancellationToken cancellationToken = default) where TOptions : NoaaOptions
+        {
+            var nextOffset = 0;
+            var isNextPageAvailable = true;
+            while (isNextPageAvailable && !cancellationToken.IsCancellationRequested)
+            {
+                options = options with { Offset = nextOffset };
+                nextOffset = options.Offset + options.Limit;
+                var url = baseUrl + _queryBuilderService.GetQuery(options);
+                _logger.LogDebug("Retrieving from url:{Url}", url);
+                var pagedData = await GetNextResultSet<T>(url, cancellationToken);
+                yield return pagedData.Results;
+                isNextPageAvailable = options.Offset + options.Limit <= pagedData.Metadata?.ResultSet.Count;
+            }
+        }
+        
     }
 }

@@ -9,11 +9,10 @@ public class UpdateHistory
     {
     }
     
-    public UpdateHistory(UpdateType updateType, bool requiresUpdates)
+    public UpdateHistory(UpdateType updateType)
     {
         UpdateType = updateType;
-        RequiresUpdates = requiresUpdates;
-        DateUpdated = DateTime.Now;
+        RequiresUpdates = true;
     }
     
     [Key]
@@ -26,5 +25,6 @@ public class UpdateHistory
 public enum UpdateType
 {
     Invalid = 0,
-    InitialSeeding = 1
+    InitialSeeding,
+    LocationSeeding,
 }

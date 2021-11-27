@@ -36,51 +36,27 @@ namespace HazardToSociety.Server.Services
                 try
                 {
                     await using var scope = _serviceProvider.CreateAsyncScope();
-                    var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                     var dbContext = scope.ServiceProvider.GetRequiredService<WeatherContext>();
                     var weatherClient = scope.ServiceProvider.GetRequiredService<IWeatherClient>();
                     
-                    //todo parallelize requests for faster processing
-                    var allLocations = await dbContext.Locations
-                        .Where(l => l.Country == "US" && l.State == "CA")
-                        .ToDictionaryAsync(options => options.NoaaId, l => l, stoppingToken);
+                    var locations = (await dbContext.LocationOfInterests
+                        .Include(l => l.Location)
+                        .ToListAsync(cancellationToken: stoppingToken))
+                        .Select(loi => loi.Location);
+                    var dataPointTracker = new DataPointTracker();
 
-
-                    var dataQueries = GetDataQueries(allLocations.Values).ToList();
-                    foreach (var dataQuery in dataQueries)
+                    foreach (var dataQuery in GetDataQueries(locations))
                     {
                         var asyncDataSet = weatherClient.GetAllData(dataQuery, stoppingToken);
-                        
-                        var noaaDataset = new List<NoaaData>();
+                        // var weatherData = 
                         await foreach (var dataset in asyncDataSet.WithCancellation(stoppingToken))
                         {
-                            noaaDataset.Add(dataset);
+                            dataPointTracker.AddRange(dataset);
                         }
 
-                        var dataByKey = noaaDataset
-                            .GroupBy(d => new {d.DataType, d.Date})
-                            .Select(g => new
-                            {
-                                DataType = g.Key,
-                                Average = g.Select(a => a.Value).Average(),
-                                Max = g.Select(a => a.Value).Max(),
-                                Min = g.Select(a => a.Value).Min(),
-                            });
-                        foreach (var entry in dataByKey)
-                        {
-                            var date = entry.DataType.Date;
-                            var locationDataPoint = new LocationDataPoint()
-                            {
-                                Average = entry.Average,
-                                Date = date.Date,
-                                LocationId = allLocations[dataQuery.LocationId].Id,
-                                Max = entry.Max,
-                                Min = entry.Min
-                            };
-                            dbContext.LocationDataPoints.Add(locationDataPoint);
-                        }
 
-                        
+                        var locationDataPoints = dataPointTracker.GetValues();
+                        dbContext.LocationDataPoints.AddRange(locationDataPoints);
                         await dbContext.SaveChangesAsync(stoppingToken);
                         //process data month by month for faster queries
                         //when a new location enters we process the entire history
@@ -99,8 +75,8 @@ namespace HazardToSociety.Server.Services
                 }
             }
         }
-        
-        public IEnumerable<NoaaDataOptions> GetDataQueries(IEnumerable<Location> locations)
+
+        private static IEnumerable<NoaaDataOptions> GetDataQueries(IEnumerable<Location> locations)
         {
             foreach (var location in locations)
             {

@@ -14,10 +14,24 @@ public class WeatherContext : DbContext
     public DbSet<UpdateHistory> UpdateHistories { get; set; }
     public DbSet<Location> Locations { get; set; }
     public DbSet<LocationDataPoint> LocationDataPoints { get; set; }
+    public DbSet<LocationOfInterest> LocationOfInterests { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UpdateHistory>()
-            .HasData(new List<UpdateHistory> { new (UpdateType.InitialSeeding, true) });
+            .HasData(new List<UpdateHistory> { new (UpdateType.InitialSeeding) });
     }
+}
+
+public class LocationOfInterest
+{
+    public LocationOfInterest(int locationId)
+    {
+        LocationId = locationId;
+    }
+    
+    public int Id { get; set; }
+    public int LocationId { get; }
+    public virtual Location Location { get; set; }
+    public DateTime ProcessedTime { get; set; }
 }

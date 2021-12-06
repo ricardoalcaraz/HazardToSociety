@@ -1,17 +1,23 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using HazardToSociety.Shared.Models;
 
 namespace HazardToSociety.Server.Services;
 
-public class DataPointTracker
+public class DataPointTracker : IEnumerable<Datapoint>
 {
-    private readonly Dictionary<string, List<NoaaData>> _dictionary;
+    private readonly ConcurrentDictionary<string, List<NoaaData>> _dictionary;
 
     public DataPointTracker()
     {
-        _dictionary = new Dictionary<string, List<NoaaData>>();
+        _dictionary = new ConcurrentDictionary<string, List<NoaaData>>();
+    }
+
+    public DataPointTracker(IEnumerable<NoaaData> data) : this()
+    {
+        AddRange(data);
     }
 
     public void AddRange(IEnumerable<NoaaData> dataSet)
@@ -24,39 +30,45 @@ public class DataPointTracker
 
     private void AddData(NoaaData dataPoint)
     {
-        if (_dictionary.TryGetValue(dataPoint.DataType, out var dataList))
+        _dictionary.AddOrUpdate(dataPoint.DataType, new List<NoaaData> { dataPoint }, (s, lis) =>
         {
-            dataList.Add(dataPoint);
-        }
-        else
-        {
-            _dictionary.Add(dataPoint.DataType, new List<NoaaData> {dataPoint});
-        }
+            lis.Add(dataPoint);
+            return lis;
+        });
     }
 
-    public IEnumerable<LocationDataPoint> GetValues()
+    public IEnumerable<Datapoint> GetValues()
     {
-        var data = new List<LocationDataPoint>();
         foreach (var (dataType, dataList) in _dictionary)
         {
-            var dataToAdd = dataList.GroupBy(d => d.Date.Date)
+            var dataToAdd = dataList
+                .GroupBy(d => d.Date.Date)
                 .Select(g =>
                 {
                     var values = g.Select(a => a.Value).ToList();
-                    return new LocationDataPoint
+                    return new Datapoint
                     {
                         DataType = dataType,
                         Date = g.Key,
-                        Average = values.Average(),
-                        Max = values.Max(),
-                        Min = values.Min(),
-                        NumRecords = values.Count
                     };
                 });
 
-            data.AddRange(dataToAdd);
+            foreach (var data in dataToAdd)
+            {
+                yield return data;
+            }
         }
-        return data;
+    }
 
+    public void Clear() => _dictionary.Clear();
+    
+    public IEnumerator<Datapoint> GetEnumerator()
+    {
+        return GetValues().GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

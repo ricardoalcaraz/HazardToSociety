@@ -1,33 +1,41 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HazardToSociety.Shared.Models;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace HazardToSociety.Shared.Utilities
 {
     public interface IQueryBuilderService
     {
-        public string GetQuery(object options);
+        public string GetQuery(string path, object options);
         public string GetUrl(string baseUrl, object options);
     }
 
     public class QueryBuilderService : IQueryBuilderService
     {
-        public string GetQuery(object options)
+        private readonly string _baseUrl;
+
+        public QueryBuilderService(string baseUrl)
+        {
+            _baseUrl = baseUrl;
+        }
+        
+        public string GetQuery(string path, object options)
         {
             var optionType = options.GetType();
             var propertyNames = optionType.GetProperties()
-                .Select(p => new
-                {
-                    PropertyName = p.Name.ToLower(),
-                    Value = GetPropertyValueByType(p.GetValue(options))
-                }).Where(p => p.Value != null)
-                .Select(p => $"{p.PropertyName}={p.Value}");
-            var queryString = string.Join('&', propertyNames);
-
-            return string.IsNullOrWhiteSpace(queryString) ? string.Empty : $"?{queryString}";
+                .Select(p => new KeyValuePair<string, string>(p.Name, GetPropertyValueByType(p.GetValue(options))))
+                .Where(p => p.Key != null && p.Value != null);
+            var queryBuilder = new QueryBuilder(propertyNames);
+            return path + queryBuilder;
         }
 
-        public string GetUrl(string baseUrl, object options) => $"{baseUrl}{GetQuery(options)}";
+        public string GetUrl(string path, object options)
+        {
+            var url = $"{_baseUrl}{GetQuery(path, options)}";
+            return url.ToLower();
+        }
 
         private static string GetPropertyValueByType(object value)
         {

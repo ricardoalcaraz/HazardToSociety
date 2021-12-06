@@ -21,7 +21,7 @@ namespace HazardToSociety.Server.Controllers
         }
 
         [HttpGet("data-types")]
-        public async Task<NoaaPagedData<NoaaDataType>> GetDataTypes([FromQuery]NoaaDataTypeOptions options)
+        public async Task<NoaaPagedData<NoaaDataType, NoaaDataTypeOptions>> GetDataTypes([FromQuery]NoaaDataTypeOptions options)
         {
             options ??= new NoaaDataTypeOptions();
             return await _weatherClient.GetDataTypes(options);

@@ -57,7 +57,7 @@ public class DatabaseSeeder
 
         var locationIds = await _db.Locations
             .Where(l => citiesOfInterest.Contains(l.City))
-            .Select(l => new LocationOfInterest(l.Id))
+            .Select(l => new LocationOfInterest{ LocationId = l.Id })
             .ToListAsync(token);
         
         _db.LocationOfInterests.AddRange(locationIds);

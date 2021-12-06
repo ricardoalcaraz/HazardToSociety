@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HazardToSociety.Server.Models;
+using HazardToSociety.Shared;
 using HazardToSociety.Shared.Models;
 using HazardToSociety.Shared.Utilities;
 using MediatR;
@@ -36,33 +37,33 @@ namespace HazardToSociety.Server.Services
                 try
                 {
                     await using var scope = _serviceProvider.CreateAsyncScope();
-                    var dbContext = scope.ServiceProvider.GetRequiredService<WeatherContext>();
+                    var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<WeatherContext>>();
                     var weatherClient = scope.ServiceProvider.GetRequiredService<IWeatherClient>();
                     
-                    var locations = (await dbContext.LocationOfInterests
+                    var locations = (await (await dbContextFactory.CreateDbContextAsync(stoppingToken)).LocationOfInterests
                         .Include(l => l.Location)
                         .ToListAsync(cancellationToken: stoppingToken))
                         .Select(loi => loi.Location);
-                    var dataPointTracker = new DataPointTracker();
 
-                    foreach (var dataQuery in GetDataQueries(locations))
+                    var additionalOptions = new List<NoaaOptions>();
+                    var pagedDatas = Array.Empty<NoaaPagedData<NoaaData, NoaaDataOptions>>();
+                    var dataPoints = Enumerable.Empty<NoaaData>();
+                    var saveChangesTasks = new List<Task<int>>();
+                    var dataQueries = locations
+                        .ToDataQueries(TimeSpan.FromDays(7))
+                        .Chunk(5);
+                    foreach (var dataQuery in dataQueries)
                     {
-                        var asyncDataSet = weatherClient.GetAllData(dataQuery, stoppingToken);
-                        // var weatherData = 
-                        await foreach (var dataset in asyncDataSet.WithCancellation(stoppingToken))
-                        {
-                            dataPointTracker.AddRange(dataset);
-                        }
-
-
-                        var locationDataPoints = dataPointTracker.GetValues();
-                        dbContext.LocationDataPoints.AddRange(locationDataPoints);
-                        await dbContext.SaveChangesAsync(stoppingToken);
+                        var remainingOptions = await GetRemainingOptions(stoppingToken, dataQuery);
+                        additionalOptions.AddRange(remainingOptions);
+                        
                         //process data month by month for faster queries
                         //when a new location enters we process the entire history
                         //keep track of execution times?
                         //save appropriate temps
                     }
+
+                    await Task.WhenAll(saveChangesTasks);
                     //get dataset options
                     //get data
                     //publish data to get processed
@@ -76,26 +77,24 @@ namespace HazardToSociety.Server.Services
             }
         }
 
-        private static IEnumerable<NoaaDataOptions> GetDataQueries(IEnumerable<Location> locations)
+        private static async Task<IEnumerable<NoaaOptions>> GetRemainingOptions(CancellationToken stoppingToken, IEnumerable<NoaaDataOptions> dataQuery)
         {
-            foreach (var location in locations)
-            {
-                var endDate = location.MinDate;
-                while (endDate < location.MaxDate)
-                {
-                    var startDate = endDate;
-                    endDate = startDate + TimeSpan.FromDays(7);
-
-                    yield return new NoaaDataOptions
-                    {
-                        DataSetId = "GHCND",
-                        StartDate = startDate,
-                        EndDate = endDate,
-                        LocationId = location.NoaaId,
-                        Units = TempUnit.Standard
-                    };
-                }
-            }
+            IDbContextFactory<WeatherContext> dbContextFactory = null;
+            IWeatherClient weatherClient = null;
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync(stoppingToken);
+            var dataPointsTask = dataQuery.Select(dq => weatherClient.GetData(dq, stoppingToken));
+            var pagedDatas = await Task.WhenAll(dataPointsTask);
+            
+            var dataPoints = pagedDatas.SelectMany(pd => pd.Results);
+            
+            var dataPointTracker = new DataPointTracker(dataPoints);
+            var locationDataPoints = dataPointTracker.GetValues();
+            dbContext.Datapoints.AddRange(locationDataPoints);
+            await dbContext.SaveChangesAsync(stoppingToken);
+            var remainingOptions = pagedDatas.SelectMany(p => p.GetRemainingDataOptions());
+            return remainingOptions;
         }
+
+        
     }
 }

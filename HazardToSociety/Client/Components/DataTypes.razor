@@ -1,5 +1,4 @@
 @using HazardToSociety.Shared.Models
-@using HazardToSociety.Server
 @using HazardToSociety.Shared.Utilities
 @inject HttpClient _httpClient;
 @inject IQueryBuilderService _queryBuilderService;
@@ -24,7 +23,7 @@
 
 @code {
     private int LimitSize { get; set; }
-    private NoaaPagedData<NoaaDataType> PagedData { get; set; }
+    private NoaaPagedData<NoaaDataType, NoaaDataTypeOptions> PagedData { get; set; }
     private List<NoaaDataType> NoaaDataTypeList { get; set; } = new();
     
     protected override async Task OnInitializedAsync()
@@ -36,7 +35,7 @@
     private async Task GetData(NoaaDataTypeOptions options)
     {
         var url = _queryBuilderService.GetUrl("api/records/data-types", options);
-        var pagedData = await _httpClient.GetFromJsonAsync<NoaaPagedData<NoaaDataType>>(url);
+        var pagedData = await _httpClient.GetFromJsonAsync<NoaaPagedData<NoaaDataType, NoaaDataTypeOptions>>(url);
         PagedData = pagedData;
     }
 

@@ -12,10 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HazardToSociety.Server.Mediatr.Command;
 
-public class AddLocationsToTrack : IRequest<IEnumerable<Location>>
-{
-    
-}
+public record AddLocationsToTrack : IRequest<IEnumerable<Location>>;
 
 public class AddLocationsToTrackHandler : IRequestHandler<AddLocationsToTrack, IEnumerable<Location>>
 {

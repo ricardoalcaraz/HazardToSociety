@@ -1,146 +1,130 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HazardToSociety.Server;
 using HazardToSociety.Shared.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace HazardToSociety.Shared.Utilities
+namespace HazardToSociety.Shared.Utilities;
+
+public class WeatherClient : IWeatherClient
 {
-    public interface IWeatherClient
+    private readonly ILogger<WeatherClient> _logger;
+    private readonly IQueryBuilderService _queryBuilderService;
+    private readonly HttpClient _httpClient;
+        
+    public WeatherClient(HttpClient httpClient, ILogger<WeatherClient> logger)
     {
-        public IAsyncEnumerable<NoaaLocation> GetAllLocations(NoaaLocationOptions locationOptions,
-            CancellationToken cancellationToken = default);
-
-        public Task<NoaaPagedData<NoaaLocation>> GetLocations(NoaaLocationOptions locationOptions, CancellationToken cancellationToken = default);
-        public IAsyncEnumerable<IEnumerable<NoaaData>> GetAllData(NoaaDataOptions options, 
-            CancellationToken cancellationToken = default);
-        public Task<NoaaPagedData<NoaaData>> GetData(NoaaDataOptions options, 
-            CancellationToken cancellationToken = default);
-        public IAsyncEnumerable<NoaaDataSet> GetDataSet(NoaaDatasetOptions options, 
-            CancellationToken cancellationToken = default);
-
-        public IAsyncEnumerable<NoaaDataType> GetAllDataTypes(NoaaDataTypeOptions options,
-            CancellationToken cancellationToken = default);
-
-        public Task<NoaaPagedData<NoaaDataType>> GetDataTypes(NoaaDataTypeOptions options,
-            CancellationToken cancellationToken = default);
+        if (httpClient.BaseAddress == null)
+            throw new ArgumentException("BaseAddress is empty", nameof(httpClient));
+            
+        _httpClient = httpClient;
+        _logger = logger;
+        _queryBuilderService = new QueryBuilderService(httpClient.BaseAddress.ToString());
+    }
+        
+        
+    public IAsyncEnumerable<NoaaLocation> GetAllLocations(NoaaLocationOptions locationOptions,
+        CancellationToken cancellationToken)
+    {
+        return GetAllPagedData<NoaaLocation, NoaaLocationOptions>("locations", locationOptions, cancellationToken);
     }
 
-    public class WeatherClient : IWeatherClient
+    public async Task<NoaaPagedData<NoaaLocation, NoaaLocationOptions>> GetLocations(NoaaLocationOptions locationOptions, CancellationToken cancellationToken)
     {
-        private readonly ILogger<WeatherClient> _logger;
-        private readonly IQueryBuilderService _queryBuilderService;
-        private readonly HttpClient _httpClient;
+        const string locationUrl = "locations";
+        return await GetNextResultSet<NoaaLocation, NoaaLocationOptions>(locationUrl, locationOptions, cancellationToken);
+    }
+
+    public Task<IEnumerable<NoaaData>> GetAllData(NoaaDataOptions options, CancellationToken cancellationToken = default)
+        => GetAsList<NoaaData, NoaaDataOptions>("data", options, cancellationToken);
+
+    public async Task<NoaaPagedData<NoaaData, NoaaDataOptions>> GetData(NoaaDataOptions options,
+        CancellationToken cancellationToken = default) =>
+        await GetNextResultSet<NoaaData, NoaaDataOptions>("data", options, cancellationToken);
+
+    public IAsyncEnumerable<NoaaDataSet> GetDataSet(NoaaDatasetOptions options,
+        CancellationToken cancellationToken)
+        => GetAllPagedData<NoaaDataSet, NoaaDatasetOptions>("datasets", options, cancellationToken);
+
+    public IAsyncEnumerable<NoaaDataType> GetAllDataTypes(NoaaDataTypeOptions options, CancellationToken cancellationToken)
+    {
+        return GetAllPagedData<NoaaDataType, NoaaDataTypeOptions>("datatypes", options, cancellationToken);
+    }
+
+    public async Task<NoaaPagedData<NoaaDataType, NoaaDataTypeOptions>> GetDataTypes(NoaaDataTypeOptions options,
+        CancellationToken cancellationToken = default) 
+        => await GetNextResultSet<NoaaDataType, NoaaDataTypeOptions>("datatypes", options, cancellationToken);
+
         
-        public WeatherClient(HttpClient httpClient, 
-            ILogger<WeatherClient> logger,
-            IQueryBuilderService queryBuilderService)
+    private async Task<NoaaPagedData<T, TOption>> GetNextResultSet<T, TOption>(string path, TOption options,
+        CancellationToken cancellationToken) where TOption : NoaaOptions
+    {
+        var urlWithParams = _queryBuilderService.GetUrl(path, options);
+        var request = await _httpClient.GetAsync(urlWithParams, cancellationToken);
+        try
         {
-            _httpClient = httpClient;
-            _logger = logger;
-            _queryBuilderService = queryBuilderService;
-        }
-        
-        
-        public IAsyncEnumerable<NoaaLocation> GetAllLocations(NoaaLocationOptions locationOptions,
-            CancellationToken cancellationToken)
-        {
-            return GetAllPagedData<NoaaLocation, NoaaLocationOptions>("locations", locationOptions, cancellationToken);
-        }
-
-        public async Task<NoaaPagedData<NoaaLocation>> GetLocations(NoaaLocationOptions locationOptions, CancellationToken cancellationToken)
-        {
-            var url = "locations" + _queryBuilderService.GetQuery(locationOptions);
-            return await GetNextResultSet<NoaaLocation>(url, cancellationToken);
-        }
-
-        public IAsyncEnumerable<IEnumerable<NoaaData>> GetAllData(NoaaDataOptions options, CancellationToken cancellationToken)
-            => GetAllDataAsLists<NoaaData, NoaaDataOptions>("data", options, cancellationToken);
-
-        public async Task<NoaaPagedData<NoaaData>> GetData(NoaaDataOptions options,
-            CancellationToken cancellationToken = default) =>
-                await GetNextResultSet<NoaaData>("data", options, cancellationToken);
-
-        public IAsyncEnumerable<NoaaDataSet> GetDataSet(NoaaDatasetOptions options,
-            CancellationToken cancellationToken)
-            => GetAllPagedData<NoaaDataSet, NoaaDatasetOptions>("datasets", options, cancellationToken);
-
-        public IAsyncEnumerable<NoaaDataType> GetAllDataTypes(NoaaDataTypeOptions options, CancellationToken cancellationToken)
-        {
-            return GetAllPagedData<NoaaDataType, NoaaDataTypeOptions>("datatypes", options, cancellationToken);
-        }
-
-        public async Task<NoaaPagedData<NoaaDataType>> GetDataTypes(NoaaDataTypeOptions options,
-            CancellationToken cancellationToken = default)
-        {
-            var url = "datatypes" + _queryBuilderService.GetQuery(options);
-            return await GetNextResultSet<NoaaDataType>(url, cancellationToken);
-        }
-
-        private async Task<NoaaPagedData<T>> GetNextResultSet<T>(string url, NoaaOptions options,
-            CancellationToken cancellationToken)
-        {
-            var urlWithParams = url + _queryBuilderService.GetQuery(options);
-            return await GetNextResultSet<T>(urlWithParams, cancellationToken);
-        }
-        
-        private async Task<NoaaPagedData<T>> GetNextResultSet<T>(string url, CancellationToken cancellationToken)
-        {
-            var request = await _httpClient.GetAsync(url, cancellationToken);
-            try
+            request.EnsureSuccessStatusCode();
+            var readFromJsonAsync = await request.Content.ReadFromJsonAsync<NoaaPagedData<T, TOption>>(cancellationToken: cancellationToken);
+            if (readFromJsonAsync != null)
             {
-                request.EnsureSuccessStatusCode();
-                return await request.Content.ReadFromJsonAsync<NoaaPagedData<T>>(cancellationToken: cancellationToken);
+                return readFromJsonAsync with {Options = options};
             }
-            catch (HttpRequestException requestException)
-            {
-                var content = await request.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError(requestException, "Unable to make request: {Content}", content);
-                throw;
-            }
+            
+            return null;
         }
-
-        private async IAsyncEnumerable<T> GetAllPagedData<T, TOptions>(string baseUrl, TOptions options, [EnumeratorCancellation] CancellationToken cancellationToken = default) where TOptions : NoaaOptions
+        catch (HttpRequestException requestException)
         {
-            var nextOffset = 0;
-            var isNextPageAvailable = true;
-            while (isNextPageAvailable && !cancellationToken.IsCancellationRequested)
-            {
-                options = options with { Offset = nextOffset };
-                nextOffset = options.Offset + options.Limit;
-                var url = baseUrl + _queryBuilderService.GetQuery(options);
-                _logger.LogDebug("Retrieving from url:{Url}", url);
-                var pagedData = await GetNextResultSet<T>(url, cancellationToken);
-                foreach (var item in pagedData.Results)
-                {
-                    yield return item;
-                }
-                isNextPageAvailable = options.Offset + options.Limit <= pagedData.Metadata?.ResultSet.Count;
-            }
+            var content = await request.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogError(requestException, "Unable to make request: {Content}", content);
+            throw;
         }
+    }
 
-        private async IAsyncEnumerable<IEnumerable<T>> GetAllDataAsLists<T, TOptions>(string baseUrl, TOptions options, 
-            [EnumeratorCancellation] CancellationToken cancellationToken = default) where TOptions : NoaaOptions
+    private async IAsyncEnumerable<T> GetAllPagedData<T, TOptions>(string baseUrl, TOptions options, [EnumeratorCancellation] CancellationToken cancellationToken = default) where TOptions : NoaaOptions
+    {
+        var nextOffset = 0;
+        var isNextPageAvailable = true;
+        while (isNextPageAvailable && !cancellationToken.IsCancellationRequested)
         {
-            var nextOffset = 0;
-            var isNextPageAvailable = true;
-            while (isNextPageAvailable && !cancellationToken.IsCancellationRequested)
+            options = options with { Offset = nextOffset };
+            nextOffset = options.Offset + options.Limit;
+            var pagedData = await GetNextResultSet<T, TOptions>(baseUrl, options, cancellationToken);
+            foreach (var item in pagedData.Results)
             {
-                options = options with { Offset = nextOffset };
-                nextOffset = options.Offset + options.Limit;
-                var url = baseUrl + _queryBuilderService.GetQuery(options);
-                _logger.LogDebug("Retrieving from url:{Url}", url);
-                var pagedData = await GetNextResultSet<T>(url, cancellationToken);
-                yield return pagedData.Results;
-                isNextPageAvailable = options.Offset + options.Limit <= pagedData.Metadata?.ResultSet.Count;
+                yield return item;
             }
+            isNextPageAvailable = options.Offset + options.Limit <= pagedData.Metadata?.ResultSet.Count;
         }
-        
+    }
+
+    private async Task<IEnumerable<T>> GetAsList<T, TOptions>(string baseUrl, TOptions options, 
+        CancellationToken cancellationToken = default) where TOptions : NoaaOptions
+    {
+        var pagedData = await GetNextResultSet<T, TOptions>(baseUrl, options, cancellationToken);
+        if (pagedData.Metadata == null)
+        {
+            _logger.LogDebug("Received nothing for {Options}", options);
+            return Enumerable.Empty<T>();
+        }
+            
+        var count = pagedData.Metadata.ResultSet.Count;
+        var returnList = new List<T>(count);
+        returnList.AddRange(pagedData.Results);
+
+        var optionRequests = pagedData.GetRemainingDataOptions().ToList();
+        foreach (var optionChunk in optionRequests.Chunk(5))
+        {
+            var tasks = optionChunk
+                .Select(option => GetNextResultSet<T, TOptions>(baseUrl, option, cancellationToken));
+
+            var data = (await Task.WhenAll(tasks)).SelectMany(t => t.Results);
+            returnList.AddRange(data);
+        }
+        return returnList;
     }
 }

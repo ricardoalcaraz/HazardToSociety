@@ -21,19 +21,23 @@ public static class ServiceExtensions
                 client.BaseAddress = new Uri("https://www.ncdc.noaa.gov/cdo-web/api/v2/");
             });
 
-    public static IServiceCollection AddWeatherContext(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddWeatherContext(this IServiceCollection services)
     {
-        services.AddDbContext<WeatherContext>(options => 
+        services.AddDbContext<WeatherContext>((sp, options) =>
         {
+            var configuration = sp.GetRequiredService<IConfiguration>();
             var database = configuration.GetValue<Database>("DatabaseProvider");
             switch (database)
             {
-                case Database.SqlLite:
+                case Database.SqlLiteFile:
                     const Environment.SpecialFolder folder = Environment.SpecialFolder.LocalApplicationData;
                     var path = Environment.GetFolderPath(folder);
                     var dbPath = $"{path}{System.IO.Path.DirectorySeparatorChar}blogging.db";
                     var connectionString = $"Data Source={dbPath}";
                     options.UseSqlite(connectionString);
+                    break;
+                case Database.SqlLiteMemory:
+                    options.UseSqlite("Data Source=:memory:");
                     break;
                 case Database.SqlServer:
                     options.UseSqlServer(configuration.GetConnectionString("WeatherContext"));

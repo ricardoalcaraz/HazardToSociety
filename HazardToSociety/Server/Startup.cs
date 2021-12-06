@@ -1,3 +1,5 @@
+using System.Reflection;
+using HazardToSociety.Server.Profiles;
 using HazardToSociety.Server.Services;
 using HazardToSociety.Shared.Utilities;
 using MediatR;
@@ -30,15 +32,17 @@ public class Startup
         services.AddRazorPages();
         services.AddLogging();
         services.AddWeatherClient();
-        services.AddSingleton<IQueryBuilderService, QueryBuilderService>();
         services.AddMediatR(typeof(Startup));
-        services.AddWeatherContext(_config);
+        services.AddWeatherContext();
         if (_config.GetValue<bool>("EnableBackgroundService"))
         {
             services.AddHostedService<WeatherService>();
         }
 
-        
+        services.AddAutoMapper(cfg =>
+        {
+            cfg.AddProfile<NoaaProfile>();
+        }, Assembly.GetExecutingAssembly());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -78,7 +82,8 @@ public class Startup
 public enum Database
 {
     Invalid,
-    SqlLite,
+    SqlLiteFile,
+    SqlLiteMemory,
     SqlServer,
     Postgres
 }
